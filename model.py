@@ -33,11 +33,13 @@ class Model:
         test_dataset = CodeDataset(self.tokenizer, Model.TEST_DATASET)
         train_args = TrainingArguments(
             output_dir='./results',
-            num_train_epochs=1,
+            num_train_epochs=2,
             per_device_train_batch_size=16,
             per_device_eval_batch_size=16,
             warmup_steps=500,
             weight_decay=0.01,
+            logging_dir='./logs',
+            logging_steps=10,
             optim='adamw_torch',
             learning_rate=5e-5,
             save_total_limit=2,
