@@ -15,12 +15,13 @@ class Model:
 
     def __init__(self):
         """ Initializes the model. """
-        logging.set_verbosity_error()
         self.tokenizer = None
         self.model = None
         self.setup()
 
     def setup(self):
+        """ Sets up the model. """
+        logging.set_verbosity_error()
         # Load model from saved if it exists
         if os.path.exists(Model.SAVED_MODEL_PATH) and os.listdir(Model.SAVED_MODEL_PATH):
             self.tokenizer = RobertaTokenizer.from_pretrained(Model.SAVED_MODEL_PATH)
@@ -40,6 +41,7 @@ class Model:
             print("Using CPU")
 
     def train(self):
+        """ Trains the model. """
         train_dataset = CodeDataset(self.tokenizer, Model.TRAIN_DATASET)
         test_dataset = CodeDataset(self.tokenizer, Model.TEST_DATASET)
         train_args = TrainingArguments(
@@ -64,8 +66,23 @@ class Model:
         trainer.evaluate()
 
     def save(self):
+        """ Saves the model and tokenizer. """
         self.model.save_pretrained(Model.SAVED_MODEL_PATH)
         self.tokenizer.save_pretrained(Model.SAVED_MODEL_PATH)
 
-    def evaluate(self):
-        pass
+    def classify_code(self, code_snippet: str):
+        """ Classifies a code snippet. """
+        inputs = self.tokenizer.encode_plus(code_snippet,
+                                            padding='max_length',
+                                            max_length=512,
+                                            truncation=True,
+                                            return_tensors='pt')
+        input_ids = inputs['input_ids'].to(self.model.device)
+        attention_mask = inputs['attention_mask'].to(self.model.device)
+
+        with torch.no_grad():
+            outputs = self.model(input_ids, attention_mask=attention_mask)
+            logits = outputs.logits
+            predicted_class = torch.argmax(logits, dim=1).item()
+
+        return predicted_class
