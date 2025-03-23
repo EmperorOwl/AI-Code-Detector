@@ -1,9 +1,8 @@
 import time
 
-from model import Model
+from app import app, model
 
 if __name__ == '__main__':
-    model = Model()
 
     isTraining = input("Do you want to train the model? (y/n): ")
 
@@ -20,20 +19,4 @@ if __name__ == '__main__':
         print(f"Runtime: {end_time - start_time} seconds")
 
     else:
-        while True:
-            print("Enter a code snippet: ")
-            lines = []
-            while True:
-                try:
-                    line = input()
-                except EOFError:
-                    break
-                lines.append(line)
-
-
-            code_snippet = '\n'.join(lines)
-            label = model.classify_code(code_snippet)
-            res = 'AI' if label == 0 else 'Human'
-            print("Result:", res, "written")
-
-    print("Done")
+        app.run(debug=True)

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Classifier</title>
+</head>
+<body>
+    <h1>Code Classifier</h1>
+    <form method="post">
+        <textarea name="code_snippet" rows="10" cols="50" placeholder="Enter your code snippet here..."></textarea><br>
+        <input type="submit" value="Classify">
+    </form>
+    {% if result %}
+        <h2>Result: {{ result }}</h2>
+    {% endif %}
+</body>
+</html>
