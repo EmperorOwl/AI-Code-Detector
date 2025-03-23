@@ -1,3 +1,4 @@
+import os
 import torch
 from transformers import logging
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
@@ -10,20 +11,30 @@ class Model:
     MODEL_NAME = "microsoft/codebert-base"
     TRAIN_DATASET = "./training_data"
     TEST_DATASET = "./testing_data"
+    SAVED_MODEL_PATH = "./saved_model"
 
     def __init__(self):
         """ Initializes the model. """
         logging.set_verbosity_error()
-        self.tokenizer = RobertaTokenizer.from_pretrained(Model.MODEL_NAME)
-        self.model = RobertaForSequenceClassification.from_pretrained(Model.MODEL_NAME, num_labels=2)
+        self.tokenizer = None
+        self.model = None
         self.setup()
 
-    def setup(self) -> None:
-        """ Use GPU if available. """
+    def setup(self):
+        # Load model from saved if it exists
+        if os.path.exists(Model.SAVED_MODEL_PATH) and os.listdir(Model.SAVED_MODEL_PATH):
+            self.tokenizer = RobertaTokenizer.from_pretrained(Model.SAVED_MODEL_PATH)
+            self.model = RobertaForSequenceClassification.from_pretrained(Model.SAVED_MODEL_PATH)
+            print("Loaded model from saved")
+        else:
+            self.tokenizer = RobertaTokenizer.from_pretrained(Model.MODEL_NAME)
+            self.model = RobertaForSequenceClassification.from_pretrained(Model.MODEL_NAME, num_labels=2)
+            print("Loaded model from Hugging Face")
+
+        # Use GPU if available
         if torch.cuda.is_available():
             self.model.to(torch.device("cuda"))
             print("Using GPU")
-
         else:
             self.model.to(torch.device("cpu"))
             print("Using CPU")
@@ -50,8 +61,11 @@ class Model:
             eval_dataset=test_dataset
         )
         trainer.train()
-
         trainer.evaluate()
+
+    def save(self):
+        self.model.save_pretrained(Model.SAVED_MODEL_PATH)
+        self.tokenizer.save_pretrained(Model.SAVED_MODEL_PATH)
 
     def evaluate(self):
         pass
