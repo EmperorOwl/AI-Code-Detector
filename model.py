@@ -83,6 +83,25 @@ class Model:
         with torch.no_grad():
             outputs = self.model(input_ids, attention_mask=attention_mask)
             logits = outputs.logits
-            predicted_class = torch.argmax(logits, dim=1).item()
+            probabilities = torch.softmax(logits, dim=1)
+            print(probabilities)
+            ai_probability = probabilities[0][0].item()  # Assuming label 0 is AI-written
 
-        return predicted_class
+        return ai_probability * 100  # Return as a percentage
+
+
+if __name__ == '__main__':
+    """ Trains the model. """
+    import time
+
+    model = Model()
+    start_time = time.time()
+
+    print("Training model...")
+    model.train()
+    print("Model trained")
+    model.save()
+    print("Model saved")
+
+    end_time = time.time()
+    print(f"Runtime: {end_time - start_time} seconds")
