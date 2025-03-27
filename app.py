@@ -3,13 +3,13 @@ from flask import Flask, request, render_template
 from model import Model
 
 app = Flask(__name__)
-model = Model()
+model = Model(use_saved=True)
 
 
 @app.route('/', methods=['GET', 'POST'])
 def classify_code():
     result = None
-    code_snippet = ""
+    code_snippet = ''
     if request.method == 'POST':
         code_snippet = request.form['code_snippet']
         ai_probability = model.classify_code(code_snippet)

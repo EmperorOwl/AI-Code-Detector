@@ -14,7 +14,9 @@ class CodeDataset(Dataset):
         self.load_samples()
 
     def load_samples(self):
-        """ Load samples from the dataset directory. """
+        """ Load samples from the dataset directory.
+        Label 0 is AI-written, label 1 is human-written.
+        """
         for filename in os.listdir(self.directory):
             label = int(filename.split('_')[0])
             filepath = os.path.join(self.directory, filename)

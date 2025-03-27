@@ -6,17 +6,20 @@
     <title>AI Code Detector</title>
 </head>
 <body>
-    <h1>Code Classifier</h1>
+    <h1>AI Code Detector</h1>
     <form method="post">
         <textarea
                 name="code_snippet"
                 rows="40" cols="100"
                 placeholder="Enter your code snippet here..."
-        >{{code_snippet}}</textarea><br>
+        >
+            {{code_snippet}}
+        </textarea>
+        <br>
         <input type="submit" value="Classify">
     </form>
     {% if result %}
-        <h2>Result: {{ result }}</h2>
+    <h2>Result: {{ result }}</h2>
     {% endif %}
 </body>
 </html>

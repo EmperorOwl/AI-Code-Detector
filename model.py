@@ -13,17 +13,21 @@ class Model:
     TEST_DATASET = "./testing_data"
     SAVED_MODEL_PATH = "./saved_model"
 
-    def __init__(self):
+    def __init__(self, use_saved: bool = False):
         """ Initializes the model. """
         self.tokenizer = None
         self.model = None
-        self.setup()
+        self.setup(use_saved)
 
-    def setup(self):
+    def setup(self, use_saved: bool):
         """ Sets up the model. """
         logging.set_verbosity_error()
         # Load model from saved if it exists
-        if os.path.exists(Model.SAVED_MODEL_PATH) and os.listdir(Model.SAVED_MODEL_PATH):
+        if use_saved:
+            if (not os.path.exists(Model.SAVED_MODEL_PATH)
+                    or not os.listdir(Model.SAVED_MODEL_PATH)):
+                raise FileNotFoundError("Saved model not found")
+
             self.tokenizer = RobertaTokenizer.from_pretrained(Model.SAVED_MODEL_PATH)
             self.model = RobertaForSequenceClassification.from_pretrained(Model.SAVED_MODEL_PATH)
             print("Loaded model from saved")
@@ -67,8 +71,8 @@ class Model:
 
     def save(self):
         """ Saves the model and tokenizer. """
-        self.model.save_pretrained(Model.SAVED_MODEL_PATH)
         self.tokenizer.save_pretrained(Model.SAVED_MODEL_PATH)
+        self.model.save_pretrained(Model.SAVED_MODEL_PATH)
 
     def classify_code(self, code_snippet: str):
         """ Classifies a code snippet. """
@@ -85,13 +89,13 @@ class Model:
             logits = outputs.logits
             probabilities = torch.softmax(logits, dim=1)
             print(probabilities)
-            ai_probability = probabilities[0][0].item()  # Assuming label 0 is AI-written
+            ai_probability = probabilities[0][0].item()
 
         return ai_probability * 100  # Return as a percentage
 
 
 if __name__ == '__main__':
-    """ Trains the model. """
+    """ Retrains the model from scratch. """
     import time
 
     model = Model()
