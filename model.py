@@ -3,6 +3,8 @@ import torch
 from transformers import logging
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
 from transformers import Trainer, TrainingArguments
+from torch.utils.data import DataLoader
+from sklearn.metrics import classification_report
 
 from code_dataset import CodeDataset
 
@@ -17,6 +19,7 @@ class Model:
         """ Initializes the model. """
         self.tokenizer = None
         self.model = None
+        self.device = None
         self.setup(use_saved)
 
     def setup(self, use_saved: bool):
@@ -38,11 +41,11 @@ class Model:
 
         # Use GPU if available
         if torch.cuda.is_available():
-            self.model.to(torch.device("cuda"))
-            print("Using GPU")
+            self.device = torch.device("cuda")
         else:
-            self.model.to(torch.device("cpu"))
-            print("Using CPU")
+            self.device = torch.device("cpu")
+        self.model.to(self.device)
+        print(f"Using device: {self.device}")
 
     def train(self):
         """ Trains the model. """
@@ -68,6 +71,30 @@ class Model:
         )
         trainer.train()
         trainer.evaluate()
+
+    def evaluate(self):
+        """ Prints out the classification report.
+        Make sure to train the model first.
+        """
+        test_dataset = CodeDataset(self.tokenizer, Model.TEST_DATASET)
+        test_dataloader = DataLoader(test_dataset, batch_size=16, shuffle=False)
+
+        self.model.eval()
+        y_true = []
+        y_pred = []
+        with torch.no_grad():
+            for batch in test_dataloader:
+                input_ids = batch['input_ids'].to(self.device)
+                attention_mask = batch['attention_mask'].to(self.device)
+                labels = batch['labels'].to(self.device)
+                outputs = self.model(input_ids, attention_mask=attention_mask)
+                logits = outputs.logits
+                predictions = torch.argmax(logits, dim=1)
+                y_true += labels.tolist()
+                y_pred += predictions.tolist()
+
+        target_names = ['ChatGPT', 'Human']
+        print(classification_report(y_true, y_pred, target_names=target_names))
 
     def save(self):
         """ Saves the model and tokenizer. """
@@ -106,6 +133,9 @@ if __name__ == '__main__':
     print("Model trained")
     model.save()
     print("Model saved")
+
+    print("Evaluating model...")
+    model.evaluate()
 
     end_time = time.time()
     print(f"Runtime: {end_time - start_time} seconds")
