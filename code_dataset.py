@@ -1,4 +1,3 @@
-import os
 import torch
 from torch.utils.data import Dataset
 
@@ -6,24 +5,10 @@ from torch.utils.data import Dataset
 class CodeDataset(Dataset):
     """ Represents a dataset of code snippets. """
 
-    def __init__(self, tokenizer, directory: str):
+    def __init__(self, tokenizer, samples: list):
         """ Initializes the dataset. """
         self.tokenizer = tokenizer
-        self.directory = directory
-        self.samples = []
-        self.load_samples()
-
-    def load_samples(self):
-        """ Load samples from the dataset directory.
-        Label 0 is AI-written, label 1 is human-written.
-        """
-        for filename in os.listdir(self.directory):
-            label = int(filename.split('_')[0])
-            filepath = os.path.join(self.directory, filename)
-            with open(filepath, 'r', encoding='utf-8') as file:
-                code = file.read()
-                self.samples.append((code, label))
-        print(f"Loaded {len(self)} samples")
+        self.samples = samples
 
     def __len__(self):
         """ Returns the length of the dataset. """

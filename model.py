@@ -4,39 +4,45 @@ from transformers import logging
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
 from transformers import Trainer, TrainingArguments
 from torch.utils.data import DataLoader
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 
 from code_dataset import CodeDataset
+from utils.utils import load_samples_from_dir, load_samples_from_csv
+
+MODEL_NAME = "microsoft/codebert-base"
+SAVED_MODEL_PATH = "./saved_model"
+
+GPTSNIFFER_JAVA = "./data/java/gptsniffer"
+MBPP_CHATGPT_PYTHON = "./data/python/mbpp_chatgpt_python_merged.csv"
 
 
 class Model:
-    MODEL_NAME = "microsoft/codebert-base"
-    TRAIN_DATASET = "./training_data"
-    TEST_DATASET = "./testing_data"
-    SAVED_MODEL_PATH = "./saved_model"
 
     def __init__(self, use_saved: bool = False):
         """ Initializes the model. """
         self.tokenizer = None
         self.model = None
         self.device = None
+        self.train_dataset = None
+        self.test_dataset = None
         self.setup(use_saved)
+        self.prepare()
 
     def setup(self, use_saved: bool):
         """ Sets up the model. """
         logging.set_verbosity_error()
         # Load model from saved if it exists
         if use_saved:
-            if (not os.path.exists(Model.SAVED_MODEL_PATH)
-                    or not os.listdir(Model.SAVED_MODEL_PATH)):
+            if not os.path.exists(SAVED_MODEL_PATH) or not os.listdir(SAVED_MODEL_PATH):
                 raise FileNotFoundError("Saved model not found")
 
-            self.tokenizer = RobertaTokenizer.from_pretrained(Model.SAVED_MODEL_PATH)
-            self.model = RobertaForSequenceClassification.from_pretrained(Model.SAVED_MODEL_PATH)
+            self.tokenizer = RobertaTokenizer.from_pretrained(SAVED_MODEL_PATH)
+            self.model = RobertaForSequenceClassification.from_pretrained(SAVED_MODEL_PATH)
             print("Loaded model from saved")
         else:
-            self.tokenizer = RobertaTokenizer.from_pretrained(Model.MODEL_NAME)
-            self.model = RobertaForSequenceClassification.from_pretrained(Model.MODEL_NAME, num_labels=2)
+            self.tokenizer = RobertaTokenizer.from_pretrained(MODEL_NAME)
+            self.model = RobertaForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2)
             print("Loaded model from Hugging Face")
 
         # Use GPU if available
@@ -47,10 +53,23 @@ class Model:
         self.model.to(self.device)
         print(f"Using device: {self.device}")
 
+    def prepare(self):
+        """ Prepares the dataset for training. """
+        samples = load_samples_from_dir(GPTSNIFFER_JAVA)
+        samples += load_samples_from_csv(MBPP_CHATGPT_PYTHON)
+
+        # Split the samples into train and test sets
+        train_samples, test_samples = train_test_split(samples,
+                                                       test_size=0.2,
+                                                       random_state=42)
+        print(f"Total samples: {len(samples)} (train: {len(train_samples)}, test: {len(test_samples)})")
+
+        # Create the datasets for processing
+        self.train_dataset = CodeDataset(self.tokenizer, train_samples)
+        self.test_dataset = CodeDataset(self.tokenizer, test_samples)
+
     def train(self):
         """ Trains the model. """
-        train_dataset = CodeDataset(self.tokenizer, Model.TRAIN_DATASET)
-        test_dataset = CodeDataset(self.tokenizer, Model.TEST_DATASET)
         train_args = TrainingArguments(
             output_dir='./results',
             num_train_epochs=3,
@@ -66,8 +85,8 @@ class Model:
         trainer = Trainer(
             model=self.model,
             args=train_args,
-            train_dataset=train_dataset,
-            eval_dataset=test_dataset
+            train_dataset=self.train_dataset,
+            eval_dataset=self.test_dataset
         )
         trainer.train()
         trainer.evaluate()
@@ -76,8 +95,9 @@ class Model:
         """ Prints out the classification report.
         Make sure to train the model first.
         """
-        test_dataset = CodeDataset(self.tokenizer, Model.TEST_DATASET)
-        test_dataloader = DataLoader(test_dataset, batch_size=16, shuffle=False)
+        test_dataloader = DataLoader(self.test_dataset,
+                                     batch_size=16,
+                                     shuffle=False)
 
         self.model.eval()
         y_true = []
@@ -98,8 +118,8 @@ class Model:
 
     def save(self):
         """ Saves the model and tokenizer. """
-        self.tokenizer.save_pretrained(Model.SAVED_MODEL_PATH)
-        self.model.save_pretrained(Model.SAVED_MODEL_PATH)
+        self.tokenizer.save_pretrained(SAVED_MODEL_PATH)
+        self.model.save_pretrained(SAVED_MODEL_PATH)
 
     def classify_code(self, code_snippet: str):
         """ Classifies a code snippet. """
@@ -115,7 +135,6 @@ class Model:
             outputs = self.model(input_ids, attention_mask=attention_mask)
             logits = outputs.logits
             probabilities = torch.softmax(logits, dim=1)
-            print(probabilities)
             ai_probability = probabilities[0][0].item()
 
         return ai_probability * 100  # Return as a percentage
