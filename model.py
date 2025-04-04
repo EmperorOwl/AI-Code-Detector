@@ -14,7 +14,11 @@ MODEL_NAME = "microsoft/codebert-base"
 SAVED_MODEL_PATH = "./saved_model"
 
 GPTSNIFFER_JAVA = "./data/java/gptsniffer"
+HE_CHATGPT4_JAVA = "./data/java/humaneval_chatgpt4_java_merged.csv"
+HE_CHATGPT_JAVA = "./data/java/humaneval_chatgpt_java_merged.csv"
+HE_GEMINI_JAVA = "./data/java/humaneval_gemini_java_merged.csv"
 MBPP_CHATGPT_PYTHON = "./data/python/mbpp_chatgpt_python_merged.csv"
+MBPP_GEMINI_PYTHON = "./data/python/mbpp_gemini_python_merged.csv"
 
 
 class Model:
@@ -56,7 +60,11 @@ class Model:
     def prepare(self):
         """ Prepares the dataset for training. """
         samples = load_samples_from_dir(GPTSNIFFER_JAVA)
+        samples += load_samples_from_csv(HE_CHATGPT4_JAVA)
+        samples += load_samples_from_csv(HE_CHATGPT_JAVA)
+        samples += load_samples_from_csv(HE_GEMINI_JAVA)
         samples += load_samples_from_csv(MBPP_CHATGPT_PYTHON)
+        samples += load_samples_from_csv(MBPP_GEMINI_PYTHON)
 
         # Split the samples into train and test sets
         train_samples, test_samples = train_test_split(samples,
@@ -75,10 +83,10 @@ class Model:
             num_train_epochs=3,
             per_device_train_batch_size=16,
             per_device_eval_batch_size=16,
-            warmup_steps=15,
+            warmup_steps=50,
             weight_decay=0.01,
             logging_dir='./logs',
-            logging_steps=25,
+            logging_steps=100,
             optim='adamw_torch',
             learning_rate=5e-5,
         )

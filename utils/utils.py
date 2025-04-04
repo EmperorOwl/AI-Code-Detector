@@ -30,7 +30,10 @@ def load_samples_from_csv(path: str) -> list[tuple[str, int]]:
     samples = []
     df = pd.read_csv(path)
     for index, row in df.iterrows():
-        code = clean_code(row['code'])
+        code = row['code']
+        if pd.isna(code):
+            continue
+        code = clean_code(code)
         label = 0 if row['label'] == 'lm' else 1
         samples.append((code, label))
     return samples
