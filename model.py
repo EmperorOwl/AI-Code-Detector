@@ -12,13 +12,7 @@ from utils.utils import load_samples_from_dir, load_samples_from_csv
 
 MODEL_NAME = "microsoft/codebert-base"
 SAVED_MODEL_PATH = "./saved_model"
-
-GPTSNIFFER_JAVA = "./data/java/gptsniffer"
-HE_CHATGPT4_JAVA = "./data/java/humaneval_chatgpt4_java_merged.csv"
-HE_CHATGPT_JAVA = "./data/java/humaneval_chatgpt_java_merged.csv"
-HE_GEMINI_JAVA = "./data/java/humaneval_gemini_java_merged.csv"
-MBPP_CHATGPT_PYTHON = "./data/python/mbpp_chatgpt_python_merged.csv"
-MBPP_GEMINI_PYTHON = "./data/python/mbpp_gemini_python_merged.csv"
+DATASET_PATH = "./data"
 
 
 class Model:
@@ -31,7 +25,6 @@ class Model:
         self.train_dataset = None
         self.test_dataset = None
         self.setup(use_saved)
-        self.prepare()
 
     def setup(self, use_saved: bool):
         """ Sets up the model. """
@@ -59,18 +52,59 @@ class Model:
 
     def prepare(self):
         """ Prepares the dataset for training. """
-        samples = load_samples_from_dir(GPTSNIFFER_JAVA)
-        samples += load_samples_from_csv(HE_CHATGPT4_JAVA)
-        samples += load_samples_from_csv(HE_CHATGPT_JAVA)
-        samples += load_samples_from_csv(HE_GEMINI_JAVA)
-        samples += load_samples_from_csv(MBPP_CHATGPT_PYTHON)
-        samples += load_samples_from_csv(MBPP_GEMINI_PYTHON)
+        datasets = {
+            'java': [
+                ('GPT Sniffer', 'gptsniffer'),
+                ('HumanEval ChatGPT 4', 'humaneval_chatgpt4_java_merged.csv'),
+                ('HumanEval ChatGPT', 'humaneval_chatgpt_java_merged.csv'),
+                ('HumanEval Gemini', 'humaneval_gemini_java_merged.csv')
+            ],
+            'python': [
+                ('HumanEval ChatGPT 4', 'humaneval_chatgpt4_python_merged.csv'),
+                ('HumanEval ChatGPT', 'humaneval_chatgpt_python_merged.csv'),
+                ('HumanEval Gemini', 'humaneval_gemini_python_merged.csv'),
+                ('MBPP ChatGPT 4', 'mbpp_chatgpt4_python_merged.csv'),
+                ('MBPP ChatGPT', 'mbpp_chatgpt_python_merged.csv'),
+                ('MBPP Gemini', 'mbpp_gemini_python_merged.csv')
+            ]
+        }
 
-        # Split the samples into train and test sets
-        train_samples, test_samples = train_test_split(samples,
-                                                       test_size=0.2,
-                                                       random_state=42)
-        print(f"Total samples: {len(samples)} (train: {len(train_samples)}, test: {len(test_samples)})")
+        print(f"{'Dataset'.ljust(25)}"
+              f"{'Language'.ljust(15)}"
+              f"{'Total'.ljust(10)}"
+              f"{'Train'.ljust(10)}"
+              f"{'Test'.ljust(10)}")
+        print("-" * 70)
+
+        # Split each dataset individually and combine the splits
+        train_samples = []
+        test_samples = []
+        for language in datasets:
+            for dataset_name, dataset_path in datasets[language]:
+                # Load samples from the dataset
+                path = os.path.join(DATASET_PATH, language, dataset_path)
+                if path.endswith('.csv'):
+                    samples = load_samples_from_csv(path)
+                else:
+                    samples = load_samples_from_dir(path)
+
+                # Split the samples into train and test sets
+                train_split, test_split = train_test_split(samples,
+                                                           test_size=0.2,
+                                                           random_state=42)
+                train_samples.extend(train_split)
+                test_samples.extend(test_split)
+                print(f"{dataset_name.ljust(25)}"
+                      f"{language.ljust(15)}"
+                      f"{str(len(samples)).ljust(10)}"
+                      f"{str(len(train_split)).ljust(10)}"
+                      f"{str(len(test_split)).ljust(10)}")
+
+        print("-" * 70)
+        print(f"{'Total'.ljust(40)}"
+              f"{str(len(train_samples) + len(test_samples)).ljust(10)}"
+              f"{str(len(train_samples)).ljust(10)}"
+              f"{str(len(test_samples)).ljust(10)}")
 
         # Create the datasets for processing
         self.train_dataset = CodeDataset(self.tokenizer, train_samples)
@@ -83,10 +117,10 @@ class Model:
             num_train_epochs=3,
             per_device_train_batch_size=16,
             per_device_eval_batch_size=16,
-            warmup_steps=50,
+            warmup_steps=100,
             weight_decay=0.01,
             logging_dir='./logs',
-            logging_steps=100,
+            logging_steps=116,
             optim='adamw_torch',
             learning_rate=5e-5,
         )
@@ -121,7 +155,7 @@ class Model:
                 y_true += labels.tolist()
                 y_pred += predictions.tolist()
 
-        target_names = ['ChatGPT', 'Human']
+        target_names = ['AI', 'Human']
         print(classification_report(y_true, y_pred, target_names=target_names))
 
     def save(self):
@@ -155,14 +189,19 @@ if __name__ == '__main__':
     model = Model()
     start_time = time.time()
 
+    print("Preparing datasets...")
+    model.prepare()
+    print("Datasets prepared\n")
+
     print("Training model...")
     model.train()
     print("Model trained")
     model.save()
-    print("Model saved")
+    print("Model saved\n")
 
     print("Evaluating model...")
     model.evaluate()
+    print("\n")
 
     end_time = time.time()
     print(f"Runtime: {end_time - start_time} seconds")
