@@ -114,10 +114,10 @@ class Model:
         """ Trains the model. """
         train_args = TrainingArguments(
             output_dir='./results',
-            num_train_epochs=3,
+            num_train_epochs=6,
             per_device_train_batch_size=16,
             per_device_eval_batch_size=16,
-            warmup_steps=100,
+            warmup_steps=200,
             weight_decay=0.01,
             logging_dir='./logs',
             logging_steps=116,
@@ -162,6 +162,7 @@ class Model:
         """ Saves the model and tokenizer. """
         self.tokenizer.save_pretrained(SAVED_MODEL_PATH)
         self.model.save_pretrained(SAVED_MODEL_PATH)
+        print(f"Model saved to {SAVED_MODEL_PATH}")
 
     def classify_code(self, code_snippet: str):
         """ Classifies a code snippet. """
@@ -189,19 +190,17 @@ if __name__ == '__main__':
     model = Model()
     start_time = time.time()
 
-    print("Preparing datasets...")
+    print("\nPreparing datasets...")
     model.prepare()
-    print("Datasets prepared\n")
 
-    print("Training model...")
+    print("\nTraining model...")
     model.train()
-    print("Model trained")
-    model.save()
-    print("Model saved\n")
 
-    print("Evaluating model...")
+    print("\nSaving model...")
+    model.save()
+
+    print("\nEvaluating model...")
     model.evaluate()
-    print("\n")
 
     end_time = time.time()
-    print(f"Runtime: {end_time - start_time} seconds")
+    print(f"\nRuntime: {end_time - start_time} seconds")
