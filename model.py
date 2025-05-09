@@ -1,11 +1,12 @@
 import os
 import torch
+import pandas as pd
 from transformers import logging
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
 from transformers import Trainer, TrainingArguments
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, confusion_matrix
 
 from code_dataset import CodeDataset
 from utils.utils import load_samples_from_dir, load_samples_from_csv
@@ -13,6 +14,26 @@ from utils.utils import load_samples_from_dir, load_samples_from_csv
 MODEL_NAME = "microsoft/codebert-base"
 SAVED_MODEL_PATH = "./saved_model"
 DATASET_PATH = "./data"
+TEST_SIZE = 0.2
+RANDOM_STATE = 42
+NUM_TRAIN_EPOCHS = 6
+BATCH_SIZE = 16
+DATASETS = {
+    'java': [
+        ('GPT Sniffer', 'gptsniffer'),
+        ('HumanEval ChatGPT 4', 'humaneval_chatgpt4_java_merged.csv'),
+        ('HumanEval ChatGPT', 'humaneval_chatgpt_java_merged.csv'),
+        ('HumanEval Gemini', 'humaneval_gemini_java_merged.csv')
+    ],
+    'python': [
+        ('HumanEval ChatGPT 4', 'humaneval_chatgpt4_python_merged.csv'),
+        ('HumanEval ChatGPT', 'humaneval_chatgpt_python_merged.csv'),
+        ('HumanEval Gemini', 'humaneval_gemini_python_merged.csv'),
+        ('MBPP ChatGPT 4', 'mbpp_chatgpt4_python_merged.csv'),
+        ('MBPP ChatGPT', 'mbpp_chatgpt_python_merged.csv'),
+        ('MBPP Gemini', 'mbpp_gemini_python_merged.csv')
+    ]
+}
 
 
 class Model:
@@ -52,23 +73,6 @@ class Model:
 
     def prepare(self):
         """ Prepares the dataset for training. """
-        datasets = {
-            'java': [
-                ('GPT Sniffer', 'gptsniffer'),
-                ('HumanEval ChatGPT 4', 'humaneval_chatgpt4_java_merged.csv'),
-                ('HumanEval ChatGPT', 'humaneval_chatgpt_java_merged.csv'),
-                ('HumanEval Gemini', 'humaneval_gemini_java_merged.csv')
-            ],
-            'python': [
-                ('HumanEval ChatGPT 4', 'humaneval_chatgpt4_python_merged.csv'),
-                ('HumanEval ChatGPT', 'humaneval_chatgpt_python_merged.csv'),
-                ('HumanEval Gemini', 'humaneval_gemini_python_merged.csv'),
-                ('MBPP ChatGPT 4', 'mbpp_chatgpt4_python_merged.csv'),
-                ('MBPP ChatGPT', 'mbpp_chatgpt_python_merged.csv'),
-                ('MBPP Gemini', 'mbpp_gemini_python_merged.csv')
-            ]
-        }
-
         print(f"{'Dataset'.ljust(25)}"
               f"{'Language'.ljust(15)}"
               f"{'Total'.ljust(10)}"
@@ -79,8 +83,8 @@ class Model:
         # Split each dataset individually and combine the splits
         train_samples = []
         test_samples = []
-        for language in datasets:
-            for dataset_name, dataset_path in datasets[language]:
+        for language in DATASETS:
+            for dataset_name, dataset_path in DATASETS[language]:
                 # Load samples from the dataset
                 path = os.path.join(DATASET_PATH, language, dataset_path)
                 if path.endswith('.csv'):
@@ -89,9 +93,11 @@ class Model:
                     samples = load_samples_from_dir(path)
 
                 # Split the samples into train and test sets
-                train_split, test_split = train_test_split(samples,
-                                                           test_size=0.2,
-                                                           random_state=42)
+                train_split, test_split = train_test_split(
+                    samples,
+                    test_size=TEST_SIZE,
+                    random_state=RANDOM_STATE
+                )
                 train_samples.extend(train_split)
                 test_samples.extend(test_split)
                 print(f"{dataset_name.ljust(25)}"
@@ -112,15 +118,27 @@ class Model:
 
     def train(self):
         """ Trains the model. """
+        # Calculate warmup steps and logging steps
+        steps_per_epoch = len(self.train_dataset) // BATCH_SIZE
+        total_steps = steps_per_epoch * NUM_TRAIN_EPOCHS
+        warmup_steps = total_steps // 10  # 10% of total steps
+        logging_steps = steps_per_epoch // 4  # 25% of epoch steps
+
+        print(f"{'EPOCHS'.rjust(13)}: {NUM_TRAIN_EPOCHS}")
+        print(f"{'BATCH_SIZE'.rjust(13)}: {BATCH_SIZE}")
+        print(f"{'TOTAL_STEPS'.rjust(13)}: {total_steps}")
+        print(f"{'WARMUP_STEPS'.rjust(13)}: {warmup_steps}")
+        print(f"{'LOGGING_STEPS'.rjust(13)}: {logging_steps}")
+
         train_args = TrainingArguments(
             output_dir='./results',
-            num_train_epochs=6,
-            per_device_train_batch_size=16,
-            per_device_eval_batch_size=16,
-            warmup_steps=200,
+            num_train_epochs=NUM_TRAIN_EPOCHS,
+            per_device_train_batch_size=BATCH_SIZE,
+            per_device_eval_batch_size=BATCH_SIZE,
+            warmup_steps=warmup_steps,
             weight_decay=0.01,
             logging_dir='./logs',
-            logging_steps=116,
+            logging_steps=logging_steps,
             optim='adamw_torch',
             learning_rate=5e-5,
         )
@@ -138,8 +156,9 @@ class Model:
         Make sure to train the model first.
         """
         test_dataloader = DataLoader(self.test_dataset,
-                                     batch_size=16,
+                                     batch_size=BATCH_SIZE,
                                      shuffle=False)
+        print(f"TEST_SIZE: {int(TEST_SIZE * 100)}%")
 
         self.model.eval()
         y_true = []
@@ -157,6 +176,11 @@ class Model:
 
         target_names = ['AI', 'Human']
         print(classification_report(y_true, y_pred, target_names=target_names))
+        cm = confusion_matrix(y_true, y_pred)
+        cm_df = pd.DataFrame(cm,
+                             index=['Actual AI', 'Actual Human'],
+                             columns=['Predicted AI', 'Predicted Human'])
+        print(cm_df.to_string())
 
     def save(self):
         """ Saves the model and tokenizer. """
@@ -185,7 +209,12 @@ class Model:
 
 if __name__ == '__main__':
     """ Retrains the model from scratch. """
+    import sys
     import time
+    from utils.dual_output import DualOutput
+
+    dual_output = DualOutput()
+    sys.stdout = dual_output
 
     model = Model()
     start_time = time.time()
@@ -196,11 +225,23 @@ if __name__ == '__main__':
     print("\nTraining model...")
     model.train()
 
-    print("\nSaving model...")
-    model.save()
-
     print("\nEvaluating model...")
     model.evaluate()
 
     end_time = time.time()
     print(f"\nRuntime: {end_time - start_time} seconds")
+
+    sys.stdout = sys.__stdout__
+    filename = input("Save output to (filename): ").strip()
+    if filename != "":
+        with open(f'outputs/{filename}.log', 'w') as file:
+            file.write(dual_output.buffer.getvalue())
+        print(f"Model saved to outputs/{filename}.log")
+    else:
+        print("Output not saved")
+    print()
+
+    if input("Save model (y/n): ").strip().lower() == "y":
+        model.save()
+    else:
+        print("Model not saved")
