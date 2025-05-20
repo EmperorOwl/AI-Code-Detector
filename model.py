@@ -20,18 +20,19 @@ NUM_TRAIN_EPOCHS = 6
 BATCH_SIZE = 16
 DATASETS = {
     'java': [
-        ('GPT Sniffer', 'gptsniffer'),
+        ('GPTSniffer ChatGPT', 'gptsniffer'),
         ('HumanEval GPT-4', 'humaneval_chatgpt4_java_merged.csv'),
         ('HumanEval ChatGPT', 'humaneval_chatgpt_java_merged.csv'),
-        ('HumanEval Gemini', 'humaneval_gemini_java_merged.csv')
+        ('HumanEval Gemini Pro', 'humaneval_gemini_java_merged.csv')
     ],
     'python': [
         ('HumanEval GPT-4', 'humaneval_chatgpt4_python_merged.csv'),
         ('HumanEval ChatGPT', 'humaneval_chatgpt_python_merged.csv'),
-        ('HumanEval Gemini', 'humaneval_gemini_python_merged.csv'),
+        ('HumanEval Gemini Pro', 'humaneval_gemini_python_merged.csv'),
         ('MBPP GPT-4', 'mbpp_chatgpt4_python_merged.csv'),
         ('MBPP ChatGPT', 'mbpp_chatgpt_python_merged.csv'),
-        ('MBPP Gemini', 'mbpp_gemini_python_merged.csv')
+        ('MBPP Gemini Pro', 'mbpp_gemini_python_merged.csv'),
+        ('CodeNet Gemini Flash', 'codenet_gemini_python.csv')
     ]
 }
 
