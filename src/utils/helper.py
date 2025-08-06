@@ -11,7 +11,8 @@ def clean_code(code: str) -> str:
     return code
 
 
-def load_samples_from_dir(directory: str) -> list[tuple[str, int]]:
+def load_samples_from_dir(directory: str, 
+                          language: str) -> list[tuple[str, int, str]]:
     """ Load samples from under a directory.
     Label 0 is AI-written, label 1 is human-written.
     """
@@ -21,11 +22,12 @@ def load_samples_from_dir(directory: str) -> list[tuple[str, int]]:
         filepath = os.path.join(directory, filename)
         with open(filepath, 'r', encoding='utf-8') as file:
             code = file.read()
-            samples.append((code, label))
+            samples.append((code, label, language))
     return samples
 
 
-def load_samples_from_csv(path: str) -> list[tuple[str, int]]:
+def load_samples_from_csv(path: str, 
+                          language: str) -> list[tuple[str, int, str]]:
     """ Load samples from a CSV file. """
     samples = []
     df = pd.read_csv(path)
@@ -35,5 +37,5 @@ def load_samples_from_csv(path: str) -> list[tuple[str, int]]:
             continue
         code = clean_code(code)
         label = 0 if row['label'] == 'lm' else 1
-        samples.append((code, label))
+        samples.append((code, label, language))
     return samples

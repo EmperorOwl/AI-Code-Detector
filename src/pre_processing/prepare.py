@@ -6,7 +6,9 @@ from src.config import Config
 from src.utils.helper import load_samples_from_dir, load_samples_from_csv
 
 
-def prepare_samples(datasets: dict, test_size: int) -> tuple[list, list]:
+def load_samples(datasets: dict = Config.DATASETS,
+                 test_size: float = Config.TEST_SIZE) -> tuple[list, list]:
+    print("Preparing datasets...")
     print(f"{'Dataset'.ljust(25)}"
           f"{'Language'.ljust(15)}"
           f"{'Total'.ljust(10)}"
@@ -22,9 +24,9 @@ def prepare_samples(datasets: dict, test_size: int) -> tuple[list, list]:
             # Load samples from the dataset
             path = os.path.join(Config.DATASET_PATH, language, dataset_path)
             if path.endswith('.csv'):
-                samples = load_samples_from_csv(path)
+                samples = load_samples_from_csv(path, language)
             else:
-                samples = load_samples_from_dir(path)
+                samples = load_samples_from_dir(path, language)
 
             # Split the samples into train and test sets
             train_split, test_split = train_test_split(
@@ -45,5 +47,6 @@ def prepare_samples(datasets: dict, test_size: int) -> tuple[list, list]:
           f"{str(len(train_samples) + len(test_samples)).ljust(10)}"
           f"{str(len(train_samples)).ljust(10)}"
           f"{str(len(test_samples)).ljust(10)}")
+    print("\n")
 
     return train_samples, test_samples

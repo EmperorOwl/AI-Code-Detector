@@ -1,25 +1,23 @@
 import sys
 import time
 
+from src.config import Config
 from src.models.codebert_model import CodeBertModel
 from src.models.ast_model import AstModel
+from src.pre_processing.prepare import load_samples
 from src.utils.dual_output import DualOutput
 
 
-def train_codebert():
+def train_codebert(train_samples: list, test_samples: list):
     dual_output = DualOutput()
     sys.stdout = dual_output
 
-    model = CodeBertModel()
+    model = CodeBertModel(
+        train_samples=train_samples,
+        test_samples=test_samples
+    )
     start_time = time.time()
-
-    print("\nPreparing datasets...")
-    model.prepare()
-
-    print("\nTraining model...")
     model.train()
-
-    print("\nEvaluating model...")
     model.evaluate()
 
     end_time = time.time()
@@ -41,20 +39,17 @@ def train_codebert():
         print("Model not saved")
 
 
-def train_ast():
+def train_ast(train_samples: list, test_samples: list):
     dual_output = DualOutput()
     sys.stdout = dual_output
 
-    model = AstModel()
+    model = AstModel(
+        train_samples=train_samples,
+        test_samples=test_samples
+    )
     start_time = time.time()
 
-    print("\nPreparing datasets...")
-    model.prepare()
-
-    print("\nTraining model...")
     model.train()
-
-    print("\nEvaluating model...")
     model.evaluate()
 
     end_time = time.time()

@@ -1,29 +1,8 @@
 import argparse
 
-from src.models.codebert_model import CodeBertModel
-from src.models.ast_model import AstModel
 
-
-def train_codebert():
-    print("Training CodeBERT model...")
-    model = CodeBertModel(use_saved=False)
-    model.train()
-    model.evaluate()
-
-    if input("Save model (y/n): ").strip().lower() == "y":
-        model.save()
-        print("CodeBERT model saved!")
-
-
-def train_ast():
-    print("Training AST model...")
-    model = AstModel(use_saved=False)
-    model.train()
-    model.evaluate()
-
-    if input("Save model (y/n): ").strip().lower() == "y":
-        model.save()
-        print("AST model saved!")
+from src.train import train_codebert, train_ast
+from src.pre_processing.prepare import load_samples
 
 
 def main():
@@ -38,14 +17,13 @@ def main():
     args = parser.parse_args()
 
     if args.train_codebert:
-        train_codebert()
+        train_codebert(*load_samples())
     elif args.train_ast:
-        train_ast()
+        train_ast(*load_samples())
     elif args.train_both:
-        print("Training both models...")
-        train_codebert()
-        print("\n" + "="*50)
-        train_ast()
+        train_samples, test_samples = load_samples()
+        train_codebert(train_samples, test_samples)
+        train_ast(train_samples, test_samples)
     else:
         parser.print_help()
 

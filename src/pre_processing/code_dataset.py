@@ -18,7 +18,13 @@ class CodeDataset(Dataset):
         """ Returns a sample from the dataset in the format required for it
         to be processed by the model.
         """
-        code, label = self.samples[index]
+        # Handle both old format (code, label) and new format (code, label, language)
+        sample = self.samples[index]
+        if len(sample) == 2:
+            code, label = sample
+        else:
+            code, label, _ = sample  # Ignore language for CodeBERT model
+            
         inputs = self.tokenizer.encode_plus(code,
                                             padding='max_length',
                                             max_length=512,

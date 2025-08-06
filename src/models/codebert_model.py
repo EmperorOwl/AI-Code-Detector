@@ -16,9 +16,9 @@ class CodeBertModel:
     """ Fine-tuned CodeBERT model """
 
     def __init__(self,
-                 train_samples: list,
-                 test_samples: list,
                  use_saved: bool = False,
+                 train_samples: list | None = None,
+                 test_samples: list | None = None,
                  num_train_epochs: int = CodeBertConfig.NUM_TRAIN_EPOCHS,
                  batch_size: int = CodeBertConfig.BATCH_SIZE) -> None:
         self.train_samples = train_samples
@@ -33,7 +33,7 @@ class CodeBertModel:
         # Datasets
         self.train_dataset = None
         self.test_dataset = None
-        # Call setup to initialise 
+        # Call setup to initialise
         self.setup(use_saved)
 
     def setup(self, use_saved: bool):
@@ -51,6 +51,7 @@ class CodeBertModel:
                 CodeBertConfig.SAVED_MODEL_PATH
             )
             print("Loaded model from saved")
+            return
         else:
             self.tokenizer = RobertaTokenizer.from_pretrained(
                 CodeBertConfig.MODEL_NAME
@@ -68,8 +69,10 @@ class CodeBertModel:
             self.device = torch.device("cpu")
         self.model.to(self.device)  # type: ignore
         print(f"Using device: {self.device}")
-        
+
         # Prepare datasets
+        if not self.train_samples or not self.test_samples:
+            raise ValueError("Train and test samples must be provided")
         self.train_dataset = CodeDataset(self.tokenizer, self.train_samples)
         self.test_dataset = CodeDataset(self.tokenizer, self.test_samples)
 
@@ -83,6 +86,7 @@ class CodeBertModel:
         warmup_steps = total_steps // 10  # 10% of total steps
         logging_steps = steps_per_epoch // 4  # 25% of epoch steps
 
+        print("Training CodeBERT Model...")
         print(f"{'EPOCHS'.rjust(13)}: {CodeBertConfig.NUM_TRAIN_EPOCHS}")
         print(f"{'BATCH_SIZE'.rjust(13)}: {CodeBertConfig.BATCH_SIZE}")
         print(f"{'TOTAL_STEPS'.rjust(13)}: {total_steps}")
@@ -109,6 +113,7 @@ class CodeBertModel:
         )
         trainer.train()
         trainer.evaluate()
+        print("\n")
 
     def evaluate(self):
         if not self.model or not self.test_dataset:
@@ -119,6 +124,7 @@ class CodeBertModel:
             batch_size=CodeBertConfig.BATCH_SIZE,
             shuffle=False
         )
+        print("Evaluating CodeBERT Model...")
         print(f"TEST_SIZE: {int(Config.TEST_SIZE * 100)}%")
 
         self.model.eval()
@@ -137,7 +143,7 @@ class CodeBertModel:
 
         target_names = ['AI', 'Human']
         print(classification_report(y_true, y_pred, target_names=target_names))
-        
+
         cm = confusion_matrix(y_true, y_pred)
         cm_df = pd.DataFrame(
             cm,
@@ -145,6 +151,7 @@ class CodeBertModel:
             columns=['Predicted AI', 'Predicted Human']
         )
         print(cm_df.to_string())
+        print("\n")
 
     def save(self):
         if not self.model or not self.tokenizer:
@@ -155,7 +162,7 @@ class CodeBertModel:
 
         self.tokenizer.save_pretrained(path)
         self.model.save_pretrained(path)
-        print(f"Model saved to {path}")
+        print(f"CodeBERT Model saved to {path}")
 
     def classify_code(self, code_snippet: str):
         if not self.model or not self.tokenizer:
