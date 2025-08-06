@@ -1,9 +1,9 @@
 from flask import Flask, request, render_template
 
-from model import Model
+from src.models.codebert import CodeBertModel
 
 app = Flask(__name__)
-model = Model(use_saved=True)
+model = CodeBertModel(use_saved=True)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -14,7 +14,9 @@ def classify_code():
         code_snippet = request.form['code_snippet']
         ai_probability = model.classify_code(code_snippet)
         result = f'{ai_probability:.2f}% AI-written'
-    return render_template('index.html', code_snippet=code_snippet, result=result)
+    return render_template('index.html',
+                           code_snippet=code_snippet,
+                           result=result)
 
 
 if __name__ == '__main__':

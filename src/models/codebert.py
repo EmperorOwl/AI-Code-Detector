@@ -8,15 +8,16 @@ from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
 
-from code_dataset import CodeDataset
-from utils.utils import load_samples_from_dir, load_samples_from_csv
+from src.utils.code_dataset import CodeDataset
+from src.utils.helper import load_samples_from_dir, load_samples_from_csv
+
 
 MODEL_NAME = "microsoft/codebert-base"
 SAVED_MODEL_PATH = "./saved_model"
 DATASET_PATH = "./data"
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
-NUM_TRAIN_EPOCHS = 6
+NUM_TRAIN_EPOCHS = 1
 BATCH_SIZE = 16
 DATASETS = {
     'java': [
@@ -37,7 +38,7 @@ DATASETS = {
 }
 
 
-class Model:
+class CodeBertModel:
 
     def __init__(self, use_saved: bool = False):
         """ Initializes the model. """
@@ -53,15 +54,21 @@ class Model:
         logging.set_verbosity_error()
         # Load model from saved if it exists
         if use_saved:
-            if not os.path.exists(SAVED_MODEL_PATH) or not os.listdir(SAVED_MODEL_PATH):
+            if (not os.path.exists(SAVED_MODEL_PATH)
+                    or not os.listdir(SAVED_MODEL_PATH)):
                 raise FileNotFoundError("Saved model not found")
 
             self.tokenizer = RobertaTokenizer.from_pretrained(SAVED_MODEL_PATH)
-            self.model = RobertaForSequenceClassification.from_pretrained(SAVED_MODEL_PATH)
+            self.model = RobertaForSequenceClassification.from_pretrained(
+                SAVED_MODEL_PATH
+            )
             print("Loaded model from saved")
         else:
             self.tokenizer = RobertaTokenizer.from_pretrained(MODEL_NAME)
-            self.model = RobertaForSequenceClassification.from_pretrained(MODEL_NAME, num_labels=2)
+            self.model = RobertaForSequenceClassification.from_pretrained(
+                MODEL_NAME,
+                num_labels=2
+            )
             print("Loaded model from Hugging Face")
 
         # Use GPU if available
@@ -69,7 +76,7 @@ class Model:
             self.device = torch.device("cuda")
         else:
             self.device = torch.device("cpu")
-        self.model.to(self.device)
+        self.model.to(self.device)  # type: ignore
         print(f"Using device: {self.device}")
 
     def prepare(self):
@@ -119,6 +126,11 @@ class Model:
 
     def train(self):
         """ Trains the model. """
+        if not self.model:
+            raise ValueError("Model not initialized. Call setup() first.")
+        if not self.train_dataset or not self.test_dataset:
+            raise ValueError("Datasets not prepared. Call prepare() first.")
+
         # Calculate warmup steps and logging steps
         steps_per_epoch = len(self.train_dataset) // BATCH_SIZE
         total_steps = steps_per_epoch * NUM_TRAIN_EPOCHS
@@ -156,6 +168,11 @@ class Model:
         """ Prints out the classification report.
         Make sure to train the model first.
         """
+        if not self.model:
+            raise ValueError("Model not initialized. Call setup() first.")
+        if not self.test_dataset:
+            raise ValueError("Datasets not prepared. Call prepare() first.")
+
         test_dataloader = DataLoader(self.test_dataset,
                                      batch_size=BATCH_SIZE,
                                      shuffle=False)
@@ -185,12 +202,17 @@ class Model:
 
     def save(self):
         """ Saves the model and tokenizer. """
+        if not self.model or not self.tokenizer:
+            raise ValueError("Model not initialized. Call setup() first.")
         self.tokenizer.save_pretrained(SAVED_MODEL_PATH)
         self.model.save_pretrained(SAVED_MODEL_PATH)
         print(f"Model saved to {SAVED_MODEL_PATH}")
 
     def classify_code(self, code_snippet: str):
         """ Classifies a code snippet. """
+        if not self.model or not self.tokenizer:
+            raise ValueError("Model not initialized. Call setup() first.")
+
         inputs = self.tokenizer.encode_plus(code_snippet,
                                             padding='max_length',
                                             max_length=512,
@@ -212,12 +234,12 @@ if __name__ == '__main__':
     """ Retrains the model from scratch. """
     import sys
     import time
-    from utils.dual_output import DualOutput
+    from src.utils.dual_output import DualOutput
 
     dual_output = DualOutput()
     sys.stdout = dual_output
 
-    model = Model()
+    model = CodeBertModel()
     start_time = time.time()
 
     print("\nPreparing datasets...")

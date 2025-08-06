@@ -13,3 +13,13 @@ https://github.com/google-research/google-research/blob/master/mbpp/README.md
 Labels
 0 = AI
 1 = Human
+
+### Commands
+
+```bash
+# Train CodeBERT model
+python -m src.models.codebert
+
+# Start Flask app
+python -m src.app
+```
