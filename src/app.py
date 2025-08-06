@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template
 
-from src.models.codebert import CodeBertModel
+from src.models.codebert_model import CodeBertModel
+
 
 app = Flask(__name__)
 model = CodeBertModel(use_saved=True)

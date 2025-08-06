@@ -18,7 +18,7 @@ Labels
 
 ```bash
 # Train CodeBERT model
-python -m src.models.codebert
+python -m src.main --train-codebert
 
 # Start Flask app
 python -m src.app
