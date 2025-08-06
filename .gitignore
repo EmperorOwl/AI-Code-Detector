@@ -1,0 +1,15 @@
+__pycache__/
+
+# Virtual environment
+.venv/
+
+# Data, outputs, results, and saved models
+data/
+outputs/
+results/
+saved_model/
+
+.idea/
+
+# MacOS
+.DS_Store

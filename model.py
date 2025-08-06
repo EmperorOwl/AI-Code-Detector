@@ -83,7 +83,7 @@ class Model:
 
         # Split each dataset individually and combine the splits
         train_samples = []
-        test_samples = []
+        test_samples = load_samples_from_csv(os.path.join(DATASET_PATH, "python", "codenet_gemini_python.csv"))
         for language in DATASETS:
             for dataset_name, dataset_path in DATASETS[language]:
                 # Load samples from the dataset
@@ -94,13 +94,15 @@ class Model:
                     samples = load_samples_from_dir(path)
 
                 # Split the samples into train and test sets
-                train_split, test_split = train_test_split(
-                    samples,
-                    test_size=TEST_SIZE,
-                    random_state=RANDOM_STATE
-                )
+                train_split = samples
+                test_split = []
+                # train_split, test_split = train_test_split(
+                #     samples,
+                #     test_size=TEST_SIZE,
+                #     random_state=RANDOM_STATE
+                # )
                 train_samples.extend(train_split)
-                test_samples.extend(test_split)
+                # test_samples.extend(test_split)
                 print(f"{dataset_name.ljust(25)}"
                       f"{language.ljust(15)}"
                       f"{str(len(samples)).ljust(10)}"
