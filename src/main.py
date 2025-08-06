@@ -1,13 +1,12 @@
 import argparse
 
 from src.models.codebert_model import CodeBertModel
-from src.models.ast_model import ASTModel
+from src.models.ast_model import AstModel
 
 
 def train_codebert():
     print("Training CodeBERT model...")
     model = CodeBertModel(use_saved=False)
-    model.prepare()
     model.train()
     model.evaluate()
 
@@ -18,8 +17,7 @@ def train_codebert():
 
 def train_ast():
     print("Training AST model...")
-    model = ASTModel(use_saved=False)
-    model.prepare()
+    model = AstModel(use_saved=False)
     model.train()
     model.evaluate()
 

@@ -2,7 +2,7 @@ import sys
 import time
 
 from src.models.codebert_model import CodeBertModel
-from src.models.ast_model import ASTModel
+from src.models.ast_model import AstModel
 from src.utils.dual_output import DualOutput
 
 
@@ -45,7 +45,7 @@ def train_ast():
     dual_output = DualOutput()
     sys.stdout = dual_output
 
-    model = ASTModel()
+    model = AstModel()
     start_time = time.time()
 
     print("\nPreparing datasets...")

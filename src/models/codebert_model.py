@@ -1,72 +1,62 @@
 import os
+
 import torch
 import pandas as pd
 from transformers import logging
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
 from transformers import Trainer, TrainingArguments
 from torch.utils.data import DataLoader
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
 
-from src.utils.code_dataset import CodeDataset
-from src.utils.helper import load_samples_from_dir, load_samples_from_csv
-
-
-MODEL_NAME = "microsoft/codebert-base"
-SAVED_MODEL_PATH = "./saved_model"
-DATASET_PATH = "./data"
-TEST_SIZE = 0.2
-RANDOM_STATE = 42
-NUM_TRAIN_EPOCHS = 1
-BATCH_SIZE = 16
-DATASETS = {
-    'java': [
-        ('GPTSniffer ChatGPT', 'gptsniffer'),
-        ('HumanEval GPT-4', 'humaneval_chatgpt4_java_merged.csv'),
-        ('HumanEval ChatGPT', 'humaneval_chatgpt_java_merged.csv'),
-        ('HumanEval Gemini Pro', 'humaneval_gemini_java_merged.csv')
-    ],
-    'python': [
-        ('HumanEval GPT-4', 'humaneval_chatgpt4_python_merged.csv'),
-        ('HumanEval ChatGPT', 'humaneval_chatgpt_python_merged.csv'),
-        ('HumanEval Gemini Pro', 'humaneval_gemini_python_merged.csv'),
-        ('MBPP GPT-4', 'mbpp_chatgpt4_python_merged.csv'),
-        ('MBPP ChatGPT', 'mbpp_chatgpt_python_merged.csv'),
-        ('MBPP Gemini Pro', 'mbpp_gemini_python_merged.csv'),
-        ('CodeNet Gemini Flash', 'codenet_gemini_python.csv')
-    ]
-}
+from src.config import Config, CodeBertConfig
+from src.pre_processing.code_dataset import CodeDataset
 
 
 class CodeBertModel:
+    """ Fine-tuned CodeBERT model """
 
-    def __init__(self, use_saved: bool = False):
-        """ Initializes the model. """
+    def __init__(self,
+                 train_samples: list,
+                 test_samples: list,
+                 use_saved: bool = False,
+                 num_train_epochs: int = CodeBertConfig.NUM_TRAIN_EPOCHS,
+                 batch_size: int = CodeBertConfig.BATCH_SIZE) -> None:
+        self.train_samples = train_samples
+        self.test_samples = test_samples
+        # Config
+        self.num_train_epochs = num_train_epochs
+        self.batch_size = batch_size
+        # Model
         self.tokenizer = None
         self.model = None
         self.device = None
+        # Datasets
         self.train_dataset = None
         self.test_dataset = None
+        # Call setup to initialise 
         self.setup(use_saved)
 
     def setup(self, use_saved: bool):
-        """ Sets up the model. """
         logging.set_verbosity_error()
         # Load model from saved if it exists
         if use_saved:
-            if (not os.path.exists(SAVED_MODEL_PATH)
-                    or not os.listdir(SAVED_MODEL_PATH)):
+            if (not os.path.exists(CodeBertConfig.SAVED_MODEL_PATH)
+                    or not os.listdir(CodeBertConfig.SAVED_MODEL_PATH)):
                 raise FileNotFoundError("Saved model not found")
 
-            self.tokenizer = RobertaTokenizer.from_pretrained(SAVED_MODEL_PATH)
+            self.tokenizer = RobertaTokenizer.from_pretrained(
+                CodeBertConfig.SAVED_MODEL_PATH
+            )
             self.model = RobertaForSequenceClassification.from_pretrained(
-                SAVED_MODEL_PATH
+                CodeBertConfig.SAVED_MODEL_PATH
             )
             print("Loaded model from saved")
         else:
-            self.tokenizer = RobertaTokenizer.from_pretrained(MODEL_NAME)
+            self.tokenizer = RobertaTokenizer.from_pretrained(
+                CodeBertConfig.MODEL_NAME
+            )
             self.model = RobertaForSequenceClassification.from_pretrained(
-                MODEL_NAME,
+                CodeBertConfig.MODEL_NAME,
                 num_labels=2
             )
             print("Loaded model from Hugging Face")
@@ -78,82 +68,38 @@ class CodeBertModel:
             self.device = torch.device("cpu")
         self.model.to(self.device)  # type: ignore
         print(f"Using device: {self.device}")
-
-    def prepare(self):
-        """ Prepares the dataset for training. """
-        print(f"{'Dataset'.ljust(25)}"
-              f"{'Language'.ljust(15)}"
-              f"{'Total'.ljust(10)}"
-              f"{'Train'.ljust(10)}"
-              f"{'Test'.ljust(10)}")
-        print("-" * 70)
-
-        # Split each dataset individually and combine the splits
-        train_samples = []
-        test_samples = []
-        for language in DATASETS:
-            for dataset_name, dataset_path in DATASETS[language]:
-                # Load samples from the dataset
-                path = os.path.join(DATASET_PATH, language, dataset_path)
-                if path.endswith('.csv'):
-                    samples = load_samples_from_csv(path)
-                else:
-                    samples = load_samples_from_dir(path)
-
-                # Split the samples into train and test sets
-                train_split, test_split = train_test_split(
-                    samples,
-                    test_size=TEST_SIZE,
-                    random_state=RANDOM_STATE
-                )
-                train_samples.extend(train_split)
-                test_samples.extend(test_split)
-                print(f"{dataset_name.ljust(25)}"
-                      f"{language.ljust(15)}"
-                      f"{str(len(samples)).ljust(10)}"
-                      f"{str(len(train_split)).ljust(10)}"
-                      f"{str(len(test_split)).ljust(10)}")
-
-        print("-" * 70)
-        print(f"{'Total'.ljust(40)}"
-              f"{str(len(train_samples) + len(test_samples)).ljust(10)}"
-              f"{str(len(train_samples)).ljust(10)}"
-              f"{str(len(test_samples)).ljust(10)}")
-
-        # Create the datasets for processing
-        self.train_dataset = CodeDataset(self.tokenizer, train_samples)
-        self.test_dataset = CodeDataset(self.tokenizer, test_samples)
+        
+        # Prepare datasets
+        self.train_dataset = CodeDataset(self.tokenizer, self.train_samples)
+        self.test_dataset = CodeDataset(self.tokenizer, self.test_samples)
 
     def train(self):
-        """ Trains the model. """
-        if not self.model:
-            raise ValueError("Model not initialized. Call setup() first.")
-        if not self.train_dataset or not self.test_dataset:
-            raise ValueError("Datasets not prepared. Call prepare() first.")
+        if not self.model or not self.train_dataset:
+            raise ValueError("Model not initialized - call setup() first")
 
         # Calculate warmup steps and logging steps
-        steps_per_epoch = len(self.train_dataset) // BATCH_SIZE
-        total_steps = steps_per_epoch * NUM_TRAIN_EPOCHS
+        steps_per_epoch = len(self.train_dataset) // CodeBertConfig.BATCH_SIZE
+        total_steps = steps_per_epoch * CodeBertConfig.NUM_TRAIN_EPOCHS
         warmup_steps = total_steps // 10  # 10% of total steps
         logging_steps = steps_per_epoch // 4  # 25% of epoch steps
 
-        print(f"{'EPOCHS'.rjust(13)}: {NUM_TRAIN_EPOCHS}")
-        print(f"{'BATCH_SIZE'.rjust(13)}: {BATCH_SIZE}")
+        print(f"{'EPOCHS'.rjust(13)}: {CodeBertConfig.NUM_TRAIN_EPOCHS}")
+        print(f"{'BATCH_SIZE'.rjust(13)}: {CodeBertConfig.BATCH_SIZE}")
         print(f"{'TOTAL_STEPS'.rjust(13)}: {total_steps}")
         print(f"{'WARMUP_STEPS'.rjust(13)}: {warmup_steps}")
         print(f"{'LOGGING_STEPS'.rjust(13)}: {logging_steps}")
 
         train_args = TrainingArguments(
             output_dir='./results',
-            num_train_epochs=NUM_TRAIN_EPOCHS,
-            per_device_train_batch_size=BATCH_SIZE,
-            per_device_eval_batch_size=BATCH_SIZE,
+            num_train_epochs=CodeBertConfig.NUM_TRAIN_EPOCHS,
+            per_device_train_batch_size=CodeBertConfig.BATCH_SIZE,
+            per_device_eval_batch_size=CodeBertConfig.BATCH_SIZE,
             warmup_steps=warmup_steps,
-            weight_decay=0.01,
+            weight_decay=CodeBertConfig.WEIGHT_DECAY,
             logging_dir='./logs',
             logging_steps=logging_steps,
             optim='adamw_torch',
-            learning_rate=5e-5,
+            learning_rate=CodeBertConfig.LEARNING_RATE,
         )
         trainer = Trainer(
             model=self.model,
@@ -165,18 +111,15 @@ class CodeBertModel:
         trainer.evaluate()
 
     def evaluate(self):
-        """ Prints out the classification report.
-        Make sure to train the model first.
-        """
-        if not self.model:
-            raise ValueError("Model not initialized. Call setup() first.")
-        if not self.test_dataset:
-            raise ValueError("Datasets not prepared. Call prepare() first.")
+        if not self.model or not self.test_dataset:
+            raise ValueError("Model not trained - call setup() first")
 
-        test_dataloader = DataLoader(self.test_dataset,
-                                     batch_size=BATCH_SIZE,
-                                     shuffle=False)
-        print(f"TEST_SIZE: {int(TEST_SIZE * 100)}%")
+        test_dataloader = DataLoader(
+            self.test_dataset,
+            batch_size=CodeBertConfig.BATCH_SIZE,
+            shuffle=False
+        )
+        print(f"TEST_SIZE: {int(Config.TEST_SIZE * 100)}%")
 
         self.model.eval()
         y_true = []
@@ -194,30 +137,37 @@ class CodeBertModel:
 
         target_names = ['AI', 'Human']
         print(classification_report(y_true, y_pred, target_names=target_names))
+        
         cm = confusion_matrix(y_true, y_pred)
-        cm_df = pd.DataFrame(cm,
-                             index=['Actual AI', 'Actual Human'],
-                             columns=['Predicted AI', 'Predicted Human'])
+        cm_df = pd.DataFrame(
+            cm,
+            index=['Actual AI', 'Actual Human'],
+            columns=['Predicted AI', 'Predicted Human']
+        )
         print(cm_df.to_string())
 
     def save(self):
-        """ Saves the model and tokenizer. """
         if not self.model or not self.tokenizer:
-            raise ValueError("Model not initialized. Call setup() first.")
-        self.tokenizer.save_pretrained(SAVED_MODEL_PATH)
-        self.model.save_pretrained(SAVED_MODEL_PATH)
-        print(f"Model saved to {SAVED_MODEL_PATH}")
+            raise ValueError("Model not initialized - call setup() first")
+
+        path = CodeBertConfig.SAVED_MODEL_PATH
+        os.makedirs(path, exist_ok=True)
+
+        self.tokenizer.save_pretrained(path)
+        self.model.save_pretrained(path)
+        print(f"Model saved to {path}")
 
     def classify_code(self, code_snippet: str):
-        """ Classifies a code snippet. """
         if not self.model or not self.tokenizer:
-            raise ValueError("Model not initialized. Call setup() first.")
+            raise ValueError("Model not trained - call train() first")
 
-        inputs = self.tokenizer.encode_plus(code_snippet,
-                                            padding='max_length',
-                                            max_length=512,
-                                            truncation=True,
-                                            return_tensors='pt')
+        inputs = self.tokenizer.encode_plus(
+            code_snippet,
+            padding='max_length',
+            max_length=512,
+            truncation=True,
+            return_tensors='pt'
+        )
         input_ids = inputs['input_ids'].to(self.model.device)
         attention_mask = inputs['attention_mask'].to(self.model.device)
 

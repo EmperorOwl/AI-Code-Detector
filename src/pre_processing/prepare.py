@@ -1,0 +1,49 @@
+import os
+
+from sklearn.model_selection import train_test_split
+
+from src.config import Config
+from src.utils.helper import load_samples_from_dir, load_samples_from_csv
+
+
+def prepare_samples(datasets: dict, test_size: int) -> tuple[list, list]:
+    print(f"{'Dataset'.ljust(25)}"
+          f"{'Language'.ljust(15)}"
+          f"{'Total'.ljust(10)}"
+          f"{'Train'.ljust(10)}"
+          f"{'Test'.ljust(10)}")
+    print("-" * 70)
+
+    # Split each dataset individually and combine the splits
+    train_samples = []
+    test_samples = []
+    for language in datasets:
+        for dataset_name, dataset_path in datasets[language]:
+            # Load samples from the dataset
+            path = os.path.join(Config.DATASET_PATH, language, dataset_path)
+            if path.endswith('.csv'):
+                samples = load_samples_from_csv(path)
+            else:
+                samples = load_samples_from_dir(path)
+
+            # Split the samples into train and test sets
+            train_split, test_split = train_test_split(
+                samples,
+                test_size=test_size,
+                random_state=Config.RANDOM_STATE
+            )
+            train_samples.extend(train_split)
+            test_samples.extend(test_split)
+            print(f"{dataset_name.ljust(25)}"
+                  f"{language.ljust(15)}"
+                  f"{str(len(samples)).ljust(10)}"
+                  f"{str(len(train_split)).ljust(10)}"
+                  f"{str(len(test_split)).ljust(10)}")
+
+    print("-" * 70)
+    print(f"{'Total'.ljust(40)}"
+          f"{str(len(train_samples) + len(test_samples)).ljust(10)}"
+          f"{str(len(train_samples)).ljust(10)}"
+          f"{str(len(test_samples)).ljust(10)}")
+
+    return train_samples, test_samples

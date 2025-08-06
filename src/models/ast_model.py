@@ -1,100 +1,74 @@
 import os
 import ast
 import pickle
+
+import torch
 import pandas as pd
 import numpy as np
-from typing import List, Tuple, Optional
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix
+from transformers import logging
 from transformers import T5EncoderModel, RobertaTokenizer
-import torch
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix
 
-from src.utils.helper import load_samples_from_dir, load_samples_from_csv
-
-
-MODEL_NAME = "Salesforce/codet5p-110m-embedding"
-SAVED_MODEL_PATH = "./saved_ast_model"
-DATASET_PATH = "./data"
-TEST_SIZE = 0.2
-RANDOM_STATE = 42
-DATASETS = {
-    'java': [
-        ('GPTSniffer ChatGPT', 'gptsniffer'),
-        ('HumanEval GPT-4', 'humaneval_chatgpt4_java_merged.csv'),
-        ('HumanEval ChatGPT', 'humaneval_chatgpt_java_merged.csv'),
-        ('HumanEval Gemini Pro', 'humaneval_gemini_java_merged.csv')
-    ],
-    'python': [
-        ('HumanEval GPT-4', 'humaneval_chatgpt4_python_merged.csv'),
-        ('HumanEval ChatGPT', 'humaneval_chatgpt_python_merged.csv'),
-        ('HumanEval Gemini Pro', 'humaneval_gemini_python_merged.csv'),
-        ('MBPP GPT-4', 'mbpp_chatgpt4_python_merged.csv'),
-        ('MBPP ChatGPT', 'mbpp_chatgpt_python_merged.csv'),
-        ('MBPP Gemini Pro', 'mbpp_gemini_python_merged.csv'),
-        ('CodeNet Gemini Flash', 'codenet_gemini_python.csv')
-    ]
-}
+from src.config import Config, AstModelConfig
+from src.pre_processing.ast_node import AstNode
+from src.pre_processing.code_dataset import CodeDataset
 
 
-class ASTNode:
-    """Represents a node in the Abstract Syntax Tree."""
+class AstModel:
+    """ AST-based model using Logistic Regression with Code T5+ embeddings """
 
-    def __init__(self, node_type: str, children: Optional[List['ASTNode']] = None):
-        self.node_type = node_type
-        self.children = children or []
-
-    def to_string(self) -> str:
-        """Convert AST node to string representation."""
-        if not self.children:
-            return self.node_type
-
-        children_str = " ".join([child.to_string() for child in self.children])
-        return f"({self.node_type} {children_str})"
-
-
-class ASTModel:
-    """AST-based model using Logistic Regression with Code T5+ embeddings."""
-
-    def __init__(self, use_saved: bool = False):
-        """Initializes the AST model."""
+    def __init__(self,
+                 train_samples: list,
+                 test_samples: list,
+                 use_saved: bool = False):
+        self.train_samples = train_samples
+        self.test_samples = test_samples
+        # Model
         self.tokenizer = None
         self.embedding_model = None
         self.classifier = None
         self.device = None
-        self.train_samples = None
-        self.test_samples = None
+        # Datasets
+        self.train_dataset = None
+        self.test_dataset = None
+        # Call setup to initialize
         self.setup(use_saved)
 
     def setup(self, use_saved: bool):
-        """Sets up the model components."""
+        logging.set_verbosity_error()
         # Load saved model if it exists
         if use_saved:
-            if (not os.path.exists(SAVED_MODEL_PATH)
-                    or not os.listdir(SAVED_MODEL_PATH)):
+            if (not os.path.exists(AstModelConfig.SAVED_MODEL_PATH)
+                    or not os.listdir(AstModelConfig.SAVED_MODEL_PATH)):
                 raise FileNotFoundError("Saved model not found")
 
-            with open(os.path.join(SAVED_MODEL_PATH, 'classifier.pkl'), 'rb') as f:
+            with open(os.path.join(AstModelConfig.SAVED_MODEL_PATH,
+                                   'classifier.pkl'), 'rb') as f:
                 self.classifier = pickle.load(f)
             print("Loaded classifier from saved model")
         else:
             self.classifier = LogisticRegression(
                 max_iter=1000,
-                random_state=RANDOM_STATE,
+                random_state=Config.RANDOM_STATE,
                 class_weight='balanced'
             )
             print("Initialized new Logistic Regression classifier")
 
         # Load Code T5+ embedding model
-        self.tokenizer = RobertaTokenizer.from_pretrained(MODEL_NAME)
-        self.embedding_model = T5EncoderModel.from_pretrained(MODEL_NAME)
+        self.tokenizer = RobertaTokenizer.from_pretrained(
+            AstModelConfig.MODEL_NAME
+        )
+        self.embedding_model = T5EncoderModel.from_pretrained(
+            AstModelConfig.MODEL_NAME
+        )
 
         # Use GPU if available
         if torch.cuda.is_available():
             self.device = torch.device("cuda")
         else:
             self.device = torch.device("cpu")
-        self.embedding_model.to(self.device)
+        self.embedding_model.to(self.device)  # type: ignore
         print(f"Using device: {self.device}")
 
     def parse_python_ast(self, code: str) -> Optional[ASTNode]:
@@ -257,19 +231,12 @@ class ASTModel:
               f"{str(len(self.test_samples)).ljust(10)}")
 
     def train(self):
-        """Trains the logistic regression model."""
-        if not self.train_samples:
-            raise ValueError(
-                "Training data not prepared. Call prepare() first.")
+        if not self.classifier or not self.train_dataset:
+            raise ValueError("Model not initialized - call setup() first")
 
-        print("Generating embeddings for training data...")
         X_train = []
         y_train = []
-
         for i, (code, label, ast_repr, language) in enumerate(self.train_samples):
-            if i % 100 == 0:
-                print(f"Processing sample {i+1}/{len(self.train_samples)}")
-
             embedding = self.get_code_embedding(ast_repr)
             X_train.append(embedding)
             y_train.append(label)
@@ -282,20 +249,14 @@ class ASTModel:
         print("Training completed!")
 
     def evaluate(self):
-        """Evaluates the model on test data."""
-        if not self.test_samples:
-            raise ValueError("Test data not prepared. Call prepare() first.")
-        if not self.classifier:
-            raise ValueError("Model not trained. Call train() first.")
+        if not self.classifier or not self.test_dataset:
+            raise ValueError("Model not trained - call setup() first")
 
-        print("Generating embeddings for test data...")
+        print(f"TEST_SIZE: {int(Config.TEST_SIZE * 100)}%")
+
         X_test = []
         y_test = []
-
         for i, (code, label, ast_repr, language) in enumerate(self.test_samples):
-            if i % 100 == 0:
-                print(f"Processing sample {i+1}/{len(self.test_samples)}")
-
             embedding = self.get_code_embedding(ast_repr)
             X_test.append(embedding)
             y_test.append(label)
@@ -306,39 +267,39 @@ class ASTModel:
         # Make predictions
         y_pred = self.classifier.predict(X_test)
 
-        print(f"TEST_SIZE: {int(TEST_SIZE * 100)}%")
         target_names = ['AI', 'Human']
         print(classification_report(y_test, y_pred, target_names=target_names))
 
         cm = confusion_matrix(y_test, y_pred)
-        cm_df = pd.DataFrame(cm,
-                             index=['Actual AI', 'Actual Human'],
-                             columns=['Predicted AI', 'Predicted Human'])
+        cm_df = pd.DataFrame(
+            cm,
+            index=['Actual AI', 'Actual Human'],
+            columns=['Predicted AI', 'Predicted Human']
+        )
         print(cm_df.to_string())
 
     def save(self):
-        """Saves the trained classifier."""
         if not self.classifier:
-            raise ValueError("Model not trained. Call train() first.")
+            raise ValueError("Model not trained - call train() first")
 
-        os.makedirs(SAVED_MODEL_PATH, exist_ok=True)
+        path = AstModelConfig.SAVED_MODEL_PATH
+        os.makedirs(path, exist_ok=True)
 
-        with open(os.path.join(SAVED_MODEL_PATH, 'classifier.pkl'), 'wb') as f:
+        with open(os.path.join(path, 'classifier.pkl'), 'wb') as f:
             pickle.dump(self.classifier, f)
 
-        print(f"Model saved to {SAVED_MODEL_PATH}")
+        print(f"Model saved to {path}")
 
     def classify_code(self, code_snippet: str, language: str) -> float:
-        """Classifies a code snippet and returns AI probability."""
         if not self.classifier:
-            raise ValueError(
-                "Model not trained. Call train() or load a saved model first.")
+            raise ValueError("Model not trained - call train() first")
 
         # Get AST representation
         ast_repr = self.get_ast_representation(code_snippet, language)
         if ast_repr is None:
             raise ValueError(
-                "Could not parse code into AST. Code may have syntax errors.")
+                "Could not parse code into AST. Code may have syntax errors."
+            )
 
         # Get embedding
         embedding = self.get_code_embedding(ast_repr)
