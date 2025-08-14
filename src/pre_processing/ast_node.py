@@ -1,7 +1,8 @@
-
-
-import ast
 from typing import Optional
+
+from tree_sitter import Language, Parser, Node
+import tree_sitter_java as tsjava
+import tree_sitter_python as tspython
 
 
 class AstNode:
@@ -22,75 +23,40 @@ class AstNode:
 
 
 class AstParser:
-    """Parser for converting code to AST representations"""
+    """Parser for converting code to AST representations using tree-sitter"""
+    JAVA_LANGUAGE = Language(tsjava.language())
+    PYTHON_LANGUAGE = Language(tspython.language())
+
+    @staticmethod
+    def parse_with_treesitter(code: str, language: Language) -> Optional[AstNode]:
+        """Parse code using tree-sitter and convert to AstNode format."""
+        try:
+            parser = Parser(language)
+            tree = parser.parse(bytes(code, 'utf8'))
+            return AstParser._convert_treesitter_node(tree.root_node)
+        except Exception as e:
+            return None
+
+    @staticmethod
+    def _convert_treesitter_node(node: Node) -> AstNode:
+        """Convert tree-sitter node to our AstNode representation."""
+        node_type = node.type
+        children = []
+
+        for child in node.children:
+            children.append(AstParser._convert_treesitter_node(child))
+
+        return AstNode(node_type, children)
 
     @staticmethod
     def parse_python_ast(code: str) -> Optional[AstNode]:
-        """Parse Python code into AST representation."""
-        try:
-            parsed = ast.parse(code)
-            return AstParser._convert_ast_node(parsed)
-        except (SyntaxError, ValueError) as e:
-            # Return None for code with syntax errors
-            return None
+        """Parse Python code into AST representation using tree-sitter."""
+        return AstParser.parse_with_treesitter(code, AstParser.PYTHON_LANGUAGE)
 
     @staticmethod
     def parse_java_ast(code: str) -> Optional[AstNode]:
-        """Parse Java code into simplified AST representation.
-
-        Note: This is a simplified parser since full Java parsing requires
-        additional dependencies. In a production system, you would use
-        a proper Java parser like javalang or tree-sitter.
-        """
-        # Simplified Java parsing - extract basic structural elements
-        lines = code.split('\n')
-        tokens = []
-
-        for line in lines:
-            line = line.strip()
-            if not line or line.startswith('//') or line.startswith('/*'):
-                continue
-
-            # Extract basic Java constructs
-            if 'class ' in line:
-                tokens.append('ClassDeclaration')
-            elif 'interface ' in line:
-                tokens.append('InterfaceDeclaration')
-            elif 'public ' in line or 'private ' in line or 'protected ' in line:
-                tokens.append('MethodDeclaration')
-            elif 'if(' in line or 'if (' in line:
-                tokens.append('IfStatement')
-            elif 'for(' in line or 'for (' in line:
-                tokens.append('ForStatement')
-            elif 'while(' in line or 'while (' in line:
-                tokens.append('WhileStatement')
-            elif 'try' in line:
-                tokens.append('TryStatement')
-            elif 'catch' in line:
-                tokens.append('CatchClause')
-            elif '=' in line and ';' in line:
-                tokens.append('AssignmentExpression')
-
-        if not tokens:
-            return None
-
-        # Create a simplified AST structure
-        root = AstNode('CompilationUnit')
-        for token in tokens:
-            root.children.append(AstNode(token))
-
-        return root
-
-    @staticmethod
-    def _convert_ast_node(node) -> AstNode:
-        """Convert Python ast node to our AstNode representation."""
-        node_type = type(node).__name__
-        children = []
-
-        for child in ast.iter_child_nodes(node):
-            children.append(AstParser._convert_ast_node(child))
-
-        return AstNode(node_type, children)
+        """Parse Java code into AST representation using tree-sitter."""
+        return AstParser.parse_with_treesitter(code, AstParser.JAVA_LANGUAGE)
 
     @staticmethod
     def get_ast_representation(code: str, language: str) -> Optional[str]:
