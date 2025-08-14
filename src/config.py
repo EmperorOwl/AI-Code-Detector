@@ -20,7 +20,7 @@ class Config:
         ]
     }
 
-# CodeBERT Model Default Configuration
+
 class CodeBertConfig:
     MODEL_NAME = "microsoft/codebert-base"
     SAVED_MODEL_PATH = "./saved/codebert_model"

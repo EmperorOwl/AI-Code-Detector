@@ -20,6 +20,9 @@ Labels
 # Train CodeBERT model
 python -m src.main --train-codebert
 
+# Train AST model
+python -m src.main --train-ast
+
 # Start Flask app
 python -m src.app
 ```
