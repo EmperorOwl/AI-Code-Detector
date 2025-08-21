@@ -23,6 +23,7 @@ python -m src.main --train-codebert
 
 # Train AST model
 python -m src.main --train-ast
+python -m src.main --train-ast --dataset-mode=assign
 
 # Start Flask app
 python -m src.app

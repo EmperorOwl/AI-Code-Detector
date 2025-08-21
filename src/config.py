@@ -20,6 +20,17 @@ class Config:
         ]
     }
 
+    # Alternative configuration: assign specific datasets to train/test
+    TRAIN_DATASETS = {
+        'java': DATASETS['java'][:1],
+        'python': []
+    }
+
+    TEST_DATASETS = {
+        'java': DATASETS['java'][1:],
+        'python': []
+    }
+
 
 class CodeBertConfig:
     MODEL_NAME = "microsoft/codebert-base"

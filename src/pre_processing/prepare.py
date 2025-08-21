@@ -6,9 +6,10 @@ from src.config import Config
 from src.utils.helper import load_samples_from_dir, load_samples_from_csv
 
 
-def load_samples(datasets: dict = Config.DATASETS,
-                 test_size: float = Config.TEST_SIZE) -> tuple[list, list]:
-    print("Preparing datasets...")
+def load_samples_by_split(datasets: dict = Config.DATASETS,
+                          test_size: float = Config.TEST_SIZE) -> tuple[list, list]:
+    """Load samples by splitting each dataset individually."""
+    print("Preparing datasets (split mode)...")
     print(f"{'Dataset'.ljust(25)}"
           f"{'Language'.ljust(15)}"
           f"{'Total'.ljust(10)}"
@@ -47,6 +48,61 @@ def load_samples(datasets: dict = Config.DATASETS,
           f"{str(len(train_samples) + len(test_samples)).ljust(10)}"
           f"{str(len(train_samples)).ljust(10)}"
           f"{str(len(test_samples)).ljust(10)}")
+    print("\n")
+
+    return train_samples, test_samples
+
+
+def load_samples_by_assignment(train_datasets: dict = Config.TRAIN_DATASETS,
+                               test_datasets: dict = Config.TEST_DATASETS) -> tuple[list, list]:
+    """Load samples by assigning specific datasets to train and test sets."""
+    print("Preparing datasets (assignment mode)...")
+    print(f"{'Dataset'.ljust(25)}"
+          f"{'Language'.ljust(15)}"
+          f"{'Split'.ljust(10)}"
+          f"{'Count'.ljust(10)}")
+    print("-" * 60)
+
+    train_samples = []
+    test_samples = []
+
+    # Load training datasets
+    for language in train_datasets:
+        for dataset_name, dataset_path in train_datasets[language]:
+            path = os.path.join(Config.DATASET_PATH, language, dataset_path)
+            if path.endswith('.csv'):
+                samples = load_samples_from_csv(path, language)
+            else:
+                samples = load_samples_from_dir(path, language)
+
+            train_samples.extend(samples)
+            print(f"{dataset_name.ljust(25)}"
+                  f"{language.ljust(15)}"
+                  f"{'Train'.ljust(10)}"
+                  f"{str(len(samples)).ljust(10)}")
+
+    # Load testing datasets
+    for language in test_datasets:
+        for dataset_name, dataset_path in test_datasets[language]:
+            path = os.path.join(Config.DATASET_PATH, language, dataset_path)
+            if path.endswith('.csv'):
+                samples = load_samples_from_csv(path, language)
+            else:
+                samples = load_samples_from_dir(path, language)
+
+            test_samples.extend(samples)
+            print(f"{dataset_name.ljust(25)}"
+                  f"{language.ljust(15)}"
+                  f"{'Test'.ljust(10)}"
+                  f"{str(len(samples)).ljust(10)}")
+
+    print("-" * 60)
+    print(f"{'Total Train'.ljust(40)}"
+          f"{str(len(train_samples)).ljust(10)}")
+    print(f"{'Total Test'.ljust(40)}"
+          f"{str(len(test_samples)).ljust(10)}")
+    print(f"{'Grand Total'.ljust(40)}"
+          f"{str(len(train_samples) + len(test_samples)).ljust(10)}")
     print("\n")
 
     return train_samples, test_samples

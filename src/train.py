@@ -1,10 +1,8 @@
 import sys
 import time
 
-from src.config import Config
 from src.models.codebert_model import CodeBertModel
 from src.models.ast_model import AstModel
-from src.pre_processing.prepare import load_samples
 from src.utils.dual_output import DualOutput
 
 
