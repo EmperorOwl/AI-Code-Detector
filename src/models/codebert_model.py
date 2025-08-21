@@ -8,7 +8,7 @@ from transformers import Trainer, TrainingArguments
 from torch.utils.data import DataLoader
 from sklearn.metrics import classification_report, confusion_matrix
 
-from src.config import Config, CodeBertConfig
+from src.config import CodeBertConfig
 from src.pre_processing.code_dataset import CodeDataset
 
 
@@ -125,7 +125,6 @@ class CodeBertModel:
             shuffle=False
         )
         print("Evaluating CodeBERT Model...")
-        print(f"TEST_SIZE: {int(Config.TEST_SIZE * 100)}%")
 
         self.model.eval()
         y_true = []

@@ -98,7 +98,7 @@ class AstModel:
     def train(self):
         if not self.classifier or not self.train_dataset:
             raise ValueError("Model not initialized - call setup() first")
-        
+
         print("Training AST Model...")
 
         X_train = []
@@ -119,7 +119,6 @@ class AstModel:
             raise ValueError("Model not trained - call setup() first")
 
         print("Evaluating AST Model...")
-        print(f"TEST_SIZE: {int(Config.TEST_SIZE * 100)}%")
 
         X_test = []
         y_test = []

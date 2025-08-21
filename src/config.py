@@ -2,34 +2,19 @@ class Config:
     TEST_SIZE = 0.2
     RANDOM_STATE = 42
     DATASET_PATH = "./datasets"
-    DATASETS = {
-        'java': [
-            ('GPTSniffer ChatGPT', 'gptsniffer'),
-            ('HumanEval GPT-4', 'humaneval_chatgpt4_java_merged.csv'),
-            ('HumanEval ChatGPT', 'humaneval_chatgpt_java_merged.csv'),
-            ('HumanEval Gemini Pro', 'humaneval_gemini_java_merged.csv')
-        ],
-        'python': [
-            ('HumanEval GPT-4', 'humaneval_chatgpt4_python_merged.csv'),
-            ('HumanEval ChatGPT', 'humaneval_chatgpt_python_merged.csv'),
-            ('HumanEval Gemini Pro', 'humaneval_gemini_python_merged.csv'),
-            ('MBPP GPT-4', 'mbpp_chatgpt4_python_merged.csv'),
-            ('MBPP ChatGPT', 'mbpp_chatgpt_python_merged.csv'),
-            ('MBPP Gemini Pro', 'mbpp_gemini_python_merged.csv'),
-            ('CodeNet Gemini Flash', 'codenet_gemini_python.csv')
-        ]
-    }
-
-    # Alternative configuration: assign specific datasets to train/test
-    TRAIN_DATASETS = {
-        'java': DATASETS['java'][:1],
-        'python': []
-    }
-
-    TEST_DATASETS = {
-        'java': DATASETS['java'][1:],
-        'python': []
-    }
+    DATASETS = [
+        ('java', 'GPTSniffer ChatGPT', 'gptsniffer'),
+        ('java', 'HumanEval GPT-4', 'humaneval_chatgpt4_java_merged.csv'),
+        ('java', 'HumanEval ChatGPT', 'humaneval_chatgpt_java_merged.csv'),
+        ('java', 'HumanEval Gemini Pro', 'humaneval_gemini_java_merged.csv'),
+        ('python', 'HumanEval GPT-4', 'humaneval_chatgpt4_python_merged.csv'),
+        ('python', 'HumanEval ChatGPT', 'humaneval_chatgpt_python_merged.csv'),
+        ('python', 'HumanEval Gemini Pro', 'humaneval_gemini_python_merged.csv'),
+        ('python', 'MBPP GPT-4', 'mbpp_chatgpt4_python_merged.csv'),
+        ('python', 'MBPP ChatGPT', 'mbpp_chatgpt_python_merged.csv'),
+        ('python', 'MBPP Gemini Pro', 'mbpp_gemini_python_merged.csv'),
+        ('python', 'CodeNet Gemini Flash', 'codenet_gemini_python.csv')
+    ]
 
 
 class CodeBertConfig:

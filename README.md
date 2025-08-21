@@ -18,12 +18,16 @@ Labels
 ### Commands
 
 ```bash
+# View available datasets
+python -m src.main --view-datasets
+
 # Train CodeBERT model
 python -m src.main --train-codebert
 
 # Train AST model
-python -m src.main --train-ast
-python -m src.main --train-ast --dataset-mode=assign
+python -m src.main --train-ast  # All datasets and 20% test size
+python -m src.main --train-ast --datasets 0 1 2 3  # Java only
+python -m src.main --train-ast --datasets 4 5 6 7 8 9 10  # Python only
 
 # Start Flask app
 python -m src.app

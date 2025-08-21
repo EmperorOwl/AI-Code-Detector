@@ -6,11 +6,17 @@ from src.models.ast_model import AstModel
 from src.utils.dual_output import DualOutput
 
 
-def train_codebert(train_samples: list, test_samples: list):
-    dual_output = DualOutput()
-    sys.stdout = dual_output
+def train_model(model_type: str,
+                train_samples: list,
+                test_samples: list,
+                dual_output: DualOutput) -> None:
 
-    model = CodeBertModel(
+    if model_type == 'codebert':
+        model_class = CodeBertModel
+    elif model_type == 'ast':
+        model_class = AstModel
+
+    model = model_class(
         train_samples=train_samples,
         test_samples=test_samples
     )
@@ -24,41 +30,10 @@ def train_codebert(train_samples: list, test_samples: list):
     sys.stdout = sys.__stdout__
     filename = input("Save output to (filename): ").strip()
     if filename != "":
-        with open(f'outputs/codebert_model/{filename}.log', 'w') as file:
+        save_path = f'outputs/{model_type}_model/{filename}.log'
+        with open(save_path, 'w') as file:
             file.write(dual_output.buffer.getvalue())
-        print(f"Model saved to outputs/{filename}.log")
-    else:
-        print("Output not saved")
-    print()
-
-    if input("Save model (y/n): ").strip().lower() == "y":
-        model.save()
-    else:
-        print("Model not saved")
-
-
-def train_ast(train_samples: list, test_samples: list):
-    dual_output = DualOutput()
-    sys.stdout = dual_output
-
-    model = AstModel(
-        train_samples=train_samples,
-        test_samples=test_samples
-    )
-    start_time = time.time()
-
-    model.train()
-    model.evaluate()
-
-    end_time = time.time()
-    print(f"\nRuntime: {end_time - start_time} seconds")
-
-    sys.stdout = sys.__stdout__
-    filename = input("Save output to (filename): ").strip()
-    if filename != "":
-        with open(f'outputs/ast_model/{filename}.log', 'w') as file:
-            file.write(dual_output.buffer.getvalue())
-        print(f"Output saved to outputs/{filename}.log")
+        print(f"Model saved to {save_path}")
     else:
         print("Output not saved")
     print()
