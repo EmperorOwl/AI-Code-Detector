@@ -33,6 +33,8 @@ class AstParser:
         try:
             parser = Parser(language)
             tree = parser.parse(bytes(code, 'utf8'))
+            # if tree.root_node.has_error:
+            #     return None
             return AstParser._convert_treesitter_node(tree.root_node)
         except Exception as e:
             return None

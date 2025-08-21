@@ -29,6 +29,9 @@ python -m src.main --train-ast  # All datasets and 20% test size
 python -m src.main --train-ast --datasets 0 1 2 3  # Java only
 python -m src.main --train-ast --datasets 4 5 6 7 8 9 10  # Python only
 
+# Test AST parsing
+python -m src.pre_processing.tests.test_ast_node
+
 # Start Flask app
 python -m src.app
 ```

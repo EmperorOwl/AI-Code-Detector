@@ -74,7 +74,9 @@ class AstModel:
         if not self.train_samples or not self.test_samples:
             raise ValueError("Train and test samples must be provided")
         self.train_dataset = AstDataset(self.train_samples)
+        # print(f"Train dataset size: {len(self.train_dataset.samples)} samples")
         self.test_dataset = AstDataset(self.test_samples)
+        # print(f"Test dataset size: {len(self.test_dataset.samples)} samples")
 
     def get_code_embedding(self, ast_representation: str) -> np.ndarray:
         if not self.tokenizer or not self.embedding_model:
