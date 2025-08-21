@@ -23,6 +23,7 @@ python -m src.main --view-datasets
 
 # Train CodeBERT model
 python -m src.main --train-codebert
+python -m src.main --train-codebert --train-datasets 0 --test-datasets 1 2 3
 
 # Train AST model
 python -m src.main --train-ast  # All datasets and 20% test size

@@ -19,14 +19,18 @@ def filter_datasets(dataset_choices: list[int]):
     return datasets
 
 
-def get_samples(dataset_choices, test_size, train_datasets, test_datasets):
-    if train_datasets and test_datasets:
-        return load_samples_by_assignment(train_datasets, test_datasets)
+def get_samples(dataset_choices, test_size,
+                train_dataset_choices, test_dataset_choices):
+    if train_dataset_choices and test_dataset_choices:
+        train_dataset_choices = filter_datasets(train_dataset_choices)
+        test_dataset_choices = filter_datasets(test_dataset_choices)
+        return load_samples_by_assignment(train_dataset_choices,
+                                          test_dataset_choices)
 
-    if train_datasets and not test_datasets:
+    if train_dataset_choices and not test_dataset_choices:
         raise Exception("--test-datasets not set")
 
-    if test_datasets and not train_datasets:
+    if test_dataset_choices and not train_dataset_choices:
         raise Exception("--train-datasets not set")
 
     datasets = filter_datasets(dataset_choices)
