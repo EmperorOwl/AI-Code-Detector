@@ -74,6 +74,15 @@ def main():
                         nargs='+',
                         help='List of datasets for testing')
 
+    # AST Model Args
+    parser.add_argument('--max-iterations',
+                        type=int,
+                        default=1000,
+                        help='Maximum iterations for training')
+    parser.add_argument('--use-enhanced-features',
+                        action='store_true',
+                        help='Whether to use enhanced AST features')
+
     args = parser.parse_args()
 
     if args.view_datasets:
@@ -95,9 +104,10 @@ def main():
 
         # Train models
         if args.train_codebert or args.train_both:
-            train_model('codebert', train_samples, test_samples, dual_output)
+            train_model('codebert', train_samples,
+                        test_samples, dual_output, args)
         if args.train_ast or args.train_both:
-            train_model('ast', train_samples, test_samples, dual_output)
+            train_model('ast', train_samples, test_samples, dual_output, args)
 
     else:
         parser.print_help()

@@ -24,10 +24,3 @@ class CodeBertConfig:
     BATCH_SIZE = 16
     WEIGHT_DECAY = 0.01
     LEARNING_RATE = 5e-5
-
-
-class AstModelConfig:
-    MODEL_NAME = "Salesforce/codet5p-110m-embedding"
-    SAVED_MODEL_PATH = "./saved/ast_model"
-    MAX_ITERATIONS = 5000
-    USE_ENHANCED_FEATURES = True

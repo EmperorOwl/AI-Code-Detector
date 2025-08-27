@@ -9,18 +9,20 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix
 
-from src.config import Config, AstModelConfig
+from src.config import Config
 from src.pre_processing.ast_node import AstParser
 from src.pre_processing.ast_dataset import AstDataset
 
 
 class AstModel:
     """ AST-based model using Logistic Regression with Code T5+ embeddings """
+    MODEL_NAME = "Salesforce/codet5p-110m-embedding"
+    SAVED_MODEL_PATH = "./saved/ast_model"
 
     def __init__(self,
+                 max_iterations: int,
+                 use_enhanced_features: bool,
                  use_saved: bool = False,
-                 max_iterations: int = AstModelConfig.MAX_ITERATIONS,
-                 use_enhanced_features: bool = AstModelConfig.USE_ENHANCED_FEATURES,
                  train_samples: list | None = None,
                  test_samples: list | None = None) -> None:
         self.train_samples = train_samples
@@ -43,20 +45,20 @@ class AstModel:
         logging.set_verbosity_error()
         # Load saved model if it exists
         if use_saved:
-            if (not os.path.exists(AstModelConfig.SAVED_MODEL_PATH)
-                    or not os.listdir(AstModelConfig.SAVED_MODEL_PATH)):
+            if (not os.path.exists(AstModel.SAVED_MODEL_PATH)
+                    or not os.listdir(AstModel.SAVED_MODEL_PATH)):
                 raise FileNotFoundError("Saved model not found")
 
-            with open(os.path.join(AstModelConfig.SAVED_MODEL_PATH,
+            with open(os.path.join(AstModel.SAVED_MODEL_PATH,
                                    'classifier.pkl'), 'rb') as f:
                 self.classifier = pickle.load(f)
-            
+
             # Load scaler if it exists
-            scaler_path = os.path.join(AstModelConfig.SAVED_MODEL_PATH, 'scaler.pkl')
+            scaler_path = os.path.join(AstModel.SAVED_MODEL_PATH, 'scaler.pkl')
             if os.path.exists(scaler_path):
                 with open(scaler_path, 'rb') as f:
                     self.scaler = pickle.load(f)
-            
+
             print("Loaded classifier from saved model")
             return
         else:
@@ -70,7 +72,8 @@ class AstModel:
                     solver='liblinear',  # Better for high-dimensional sparse data
                     C=1.0  # Regularization strength
                 )
-                print("Initialized Logistic Regression with enhanced features configuration")
+                print(
+                    "Initialized Logistic Regression with enhanced features configuration")
             else:
                 # Standard configuration for basic features
                 self.classifier = LogisticRegression(
@@ -78,17 +81,16 @@ class AstModel:
                     random_state=Config.RANDOM_STATE,
                     class_weight='balanced'
                 )
-                print("Initialized Logistic Regression with basic features configuration")
-            
+                print(
+                    "Initialized Logistic Regression with basic features configuration")
+
             # Initialize scaler for feature scaling
             self.scaler = StandardScaler()
 
         # Load Code T5+ embedding model
-        self.tokenizer = RobertaTokenizer.from_pretrained(
-            AstModelConfig.MODEL_NAME
-        )
+        self.tokenizer = RobertaTokenizer.from_pretrained(AstModel.MODEL_NAME)
         self.embedding_model = T5EncoderModel.from_pretrained(
-            AstModelConfig.MODEL_NAME
+            AstModel.MODEL_NAME
         )
 
         # Use GPU if available
@@ -243,10 +245,7 @@ class AstModel:
         if not self.classifier or not self.train_dataset:
             raise ValueError("Model not initialized - call setup() first")
 
-        print("Training AST Model...")
-        print(f"Max Iterations: {self.max_iterations}")
-        print(f"Use Enhanced Features: {self.use_enhanced_features}")
-
+        print("Preparing embeddings...")
         X_train = []
         y_train = []
         for code, label, ast_repr, language in self.train_dataset:
@@ -258,17 +257,19 @@ class AstModel:
         y_train = np.array(y_train)
 
         print(f"Feature vector size: {X_train.shape[1]}")
-        
+
         # Apply feature scaling
         if self.scaler is not None:
             print("Applying feature scaling...")
             X_train_scaled = self.scaler.fit_transform(X_train)
         else:
             X_train_scaled = X_train
-            
+
         print("Training classifier...")
         self.classifier.fit(X_train_scaled, y_train)
-        # print(f"Iterations Performed: {self.classifier.n_iter_}")
+        print(
+            f"Iterations Performed: {self.classifier.n_iter_}/{self.max_iterations}"
+        )
         print("\n")
 
     def evaluate(self):
@@ -311,12 +312,12 @@ class AstModel:
         if not self.classifier:
             raise ValueError("Model not trained - call train() first")
 
-        path = AstModelConfig.SAVED_MODEL_PATH
+        path = AstModel.SAVED_MODEL_PATH
         os.makedirs(path, exist_ok=True)
 
         with open(os.path.join(path, 'classifier.pkl'), 'wb') as f:
             pickle.dump(self.classifier, f)
-        
+
         # Save scaler if it exists
         if self.scaler is not None:
             with open(os.path.join(path, 'scaler.pkl'), 'wb') as f:
