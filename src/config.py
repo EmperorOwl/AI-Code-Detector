@@ -20,7 +20,7 @@ class Config:
 class CodeBertConfig:
     MODEL_NAME = "microsoft/codebert-base"
     SAVED_MODEL_PATH = "./saved/codebert_model"
-    NUM_TRAIN_EPOCHS = 12
+    NUM_TRAIN_EPOCHS = 5
     BATCH_SIZE = 16
     WEIGHT_DECAY = 0.01
     LEARNING_RATE = 5e-5
@@ -29,3 +29,4 @@ class CodeBertConfig:
 class AstModelConfig:
     MODEL_NAME = "Salesforce/codet5p-110m-embedding"
     SAVED_MODEL_PATH = "./saved/ast_model"
+    MAX_ITERATIONS = 2000

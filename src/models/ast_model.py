@@ -18,10 +18,12 @@ class AstModel:
 
     def __init__(self,
                  use_saved: bool = False,
+                 max_iterations: int = AstModelConfig.MAX_ITERATIONS,
                  train_samples: list | None = None,
                  test_samples: list | None = None):
         self.train_samples = train_samples
         self.test_samples = test_samples
+        self.max_iterations = max_iterations
         # Model
         self.tokenizer = None
         self.embedding_model = None
@@ -48,7 +50,7 @@ class AstModel:
             return
         else:
             self.classifier = LogisticRegression(
-                max_iter=1000,
+                max_iter=self.max_iterations,
                 random_state=Config.RANDOM_STATE,
                 class_weight='balanced'
             )
@@ -102,6 +104,7 @@ class AstModel:
             raise ValueError("Model not initialized - call setup() first")
 
         print("Training AST Model...")
+        print(f"Max Iterations: {self.max_iterations}")
 
         X_train = []
         y_train = []
