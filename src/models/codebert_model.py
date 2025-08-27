@@ -94,16 +94,26 @@ class CodeBertModel:
         print(f"{'LOGGING_STEPS'.rjust(13)}: {logging_steps}")
 
         train_args = TrainingArguments(
-            output_dir='./results',
+            # Best Model
+            load_best_model_at_end=True,
+            metric_for_best_model="eval_loss",
+            save_total_limit=5,
+            eval_strategy="steps",
+            # Steps
+            eval_steps=logging_steps,
+            save_steps=logging_steps,
+            logging_steps=logging_steps,
+            warmup_steps=warmup_steps,
+            # Config
             num_train_epochs=CodeBertConfig.NUM_TRAIN_EPOCHS,
             per_device_train_batch_size=CodeBertConfig.BATCH_SIZE,
             per_device_eval_batch_size=CodeBertConfig.BATCH_SIZE,
-            warmup_steps=warmup_steps,
             weight_decay=CodeBertConfig.WEIGHT_DECAY,
-            logging_dir='./logs',
-            logging_steps=logging_steps,
             optim='adamw_torch',
             learning_rate=CodeBertConfig.LEARNING_RATE,
+            # File
+            output_dir='./results',
+            logging_dir='./logs',
         )
         trainer = Trainer(
             model=self.model,
