@@ -2,16 +2,15 @@ import os
 import pickle
 import torch
 import numpy as np
-import pandas as pd
 from transformers import logging
 from transformers import T5EncoderModel, RobertaTokenizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import classification_report, confusion_matrix
 
 from src.config import Config
 from src.pre_processing.ast_node import AstParser
 from src.pre_processing.ast_dataset import AstDataset
+from src.utils.results import print_results
 
 
 class AstModel:
@@ -297,16 +296,8 @@ class AstModel:
         # Make predictions
         y_pred = self.classifier.predict(X_test_scaled)
 
-        target_names = ['AI', 'Human']
-        print(classification_report(y_test, y_pred, target_names=target_names))
-
-        cm = confusion_matrix(y_test, y_pred)
-        cm_df = pd.DataFrame(
-            cm,
-            index=['Actual AI', 'Actual Human'],
-            columns=['Predicted AI', 'Predicted Human']
-        )
-        print(cm_df.to_string())
+        # Print results
+        print_results(y_test, y_pred)
 
     def save(self):
         if not self.classifier:

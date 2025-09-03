@@ -31,7 +31,7 @@ def train_model(model_type: str,
 
     end_time = time.time()
     seconds = end_time - start_time
-    print(f"\nRuntime: {seconds} seconds ({seconds / 60} minutes)")
+    print(f"\nRuntime: {seconds:.2f} seconds ({seconds / 60:.2f} minutes)")
 
     sys.stdout = sys.__stdout__
     filename = input("Save output to (filename): ").strip()

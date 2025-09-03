@@ -1,15 +1,14 @@
 import os
 
 import torch
-import pandas as pd
+from torch.utils.data import DataLoader
 from transformers import logging
 from transformers import RobertaTokenizer, RobertaForSequenceClassification
 from transformers import Trainer, TrainingArguments
-from torch.utils.data import DataLoader
-from sklearn.metrics import classification_report, confusion_matrix
 
 from src.config import CodeBertConfig
 from src.pre_processing.code_dataset import CodeDataset
+from src.utils.results import print_results
 
 
 class CodeBertModel:
@@ -150,17 +149,8 @@ class CodeBertModel:
                 y_true += labels.tolist()
                 y_pred += predictions.tolist()
 
-        target_names = ['AI', 'Human']
-        print(classification_report(y_true, y_pred, target_names=target_names))
-
-        cm = confusion_matrix(y_true, y_pred)
-        cm_df = pd.DataFrame(
-            cm,
-            index=['Actual AI', 'Actual Human'],
-            columns=['Predicted AI', 'Predicted Human']
-        )
-        print(cm_df.to_string())
-        print("\n")
+        # Print results
+        print_results(y_true, y_pred)
 
     def save(self):
         if not self.model or not self.tokenizer:
