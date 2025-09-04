@@ -21,8 +21,12 @@ class AstModel:
     SAVED_MODEL_PATH = "./saved/ast_model"
 
     def __init__(self,
+                 use_scaler: bool,
+                 add_structural_features: bool,
                  max_iterations: int,
                  logger: Logger) -> None:
+        self.use_scaler = use_scaler
+        self.add_structural_features = add_structural_features
         self.max_iterations = max_iterations
 
         # Set up tokenizer, embedding model and classifier
@@ -31,7 +35,9 @@ class AstModel:
         self.classifier = LogisticRegression(
             max_iter=self.max_iterations,
             random_state=42,
-            class_weight='balanced'
+            class_weight='balanced',
+            # C=0.1,  # Regularization to prevent overfitting
+            # solver='liblinear'  # Better for small datasets
         )
         self.scaler = StandardScaler()
 
@@ -56,7 +62,8 @@ class AstModel:
             return_tensors="pt",
             padding=True,
             truncation=True,
-            max_length=512
+            max_length=1024,  # Increased from 512 for better coverage
+            add_special_tokens=True
         ).to(self.device)
 
         with torch.no_grad():
@@ -66,15 +73,21 @@ class AstModel:
 
         embeddings = embeddings.cpu().numpy().flatten()
 
-        structural_features = extract_structural_features(ast_repr)
+        if self.add_structural_features:
+            structural_features = extract_structural_features(ast_repr)
+            # Combine embeddings with structural features
+            embeddings = np.concatenate((embeddings, structural_features))
 
-        return np.concatenate((embeddings, structural_features))
+        return embeddings
 
     def train(self,
               train_samples: list[Sample],
               validation_samples: list[Sample]):
         # Prepare training dataset
-        self.logger.info("Generating AST code embeddings...\n")
+        self.logger.info(
+            f"Generating AST code embeddings (add_structural_features: "
+            f"{str(self.add_structural_features).lower()})...\n"
+        )
         x_train = []
         y_train = []
         for sample in train_samples:
@@ -85,8 +98,9 @@ class AstModel:
         y_train = np.array(y_train)
 
         # Scaler
-        self.logger.info("Scaling code embeddings...\n")
-        x_train = self.scaler.fit_transform(x_train)
+        if self.use_scaler:
+            self.logger.info("Scaling code embeddings...\n")
+            x_train = self.scaler.fit_transform(x_train)
 
         # Train the classifier
         self.logger.info("Training the classifier...")
@@ -103,7 +117,9 @@ class AstModel:
             x_val.append(self._get_code_embedding(sample))
             y_val.append(sample.label)
 
-        x_val = self.scaler.transform(x_val)
+        # Scaler
+        if self.use_scaler:
+            x_val = self.scaler.transform(x_val)
 
         # Evaluate the classifier
         self.logger.info("Validating the classifier...")
@@ -120,7 +136,9 @@ class AstModel:
             x_test.append(self._get_code_embedding(sample))
             y_test.append(sample.label)
 
-        x_test = self.scaler.transform(x_test)
+        # Scaler
+        if self.use_scaler:
+            x_test = self.scaler.transform(x_test)
 
         # Make predictions
         self.logger.info("Evaluating AST model...")

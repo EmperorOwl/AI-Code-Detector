@@ -13,3 +13,6 @@ saved/
 
 # MacOS
 .DS_Store
+
+# VSCode
+.vscode

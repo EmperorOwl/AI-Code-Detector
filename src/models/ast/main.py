@@ -10,11 +10,12 @@ start_time = time.time()
 logger = get_logger('ast_model', 'outputs/ast_model/z_temp.log')
 
 # Load datasets
-# train, validation, test = load_samples([DATASETS[1]], 0.1, 0.1, logger)
-train, validation, test = load_samples(DATASETS, 0.1, 0.1, logger)
+train, validation, test = load_samples(DATASETS[:4], 0.1, 0.1, logger)
 
 # Initialize model
 model = AstModel(
+    use_scaler=False,
+    add_structural_features=False,
     max_iterations=1000,
     logger=logger
 )
