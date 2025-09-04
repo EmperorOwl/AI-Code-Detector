@@ -11,7 +11,6 @@ logger = get_logger('codebert_model', 'outputs/codebert_model/z_temp.log')
 
 # Load datasets
 train, validation, test = load_samples(DATASETS[4:], 0.1, 0.1, logger)
-# train, validation, test = load_samples(DATASETS, 0.1, 0.1, logger)
 
 # Initialize model
 model = CodeBertModel(
