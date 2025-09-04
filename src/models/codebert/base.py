@@ -39,7 +39,7 @@ class CodeBertModel:
         # Set up logger
         self.logger = logger
         self.logger.info(
-            f"CodeBERT model initialized using device: {self.device}"
+            f"CodeBERT model initialized using device: {self.device}\n"
         )
 
     def train(self,
