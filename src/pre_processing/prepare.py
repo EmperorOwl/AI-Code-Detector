@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from src.pre_processing.sample import (load_samples_from_dir,
                                        load_samples_from_csv,
                                        Sample)
+from src.utils.random import get_random_samples
 
 
 RANDOM_STATE = 42
@@ -54,15 +55,20 @@ Splits = tuple[list[Sample], list[Sample], list[Sample]]
 def split_dataset(dataset: Dataset,
                   validation_size,
                   test_size,
-                  logger: Logger) -> Splits:
+                  logger: Logger,
+                  max_sample_count: int | None = None) -> Splits:
     """Split samples into train, validation, and test sets."""
+    samples = dataset.samples
+    if max_sample_count is not None:
+        samples = get_random_samples(samples, max_sample_count)
+
     if test_size == 1:
         train_split = []
         val_split = []
-        test_split = dataset.samples
+        test_split = samples
     elif test_size == 0:
         train_split, val_split = train_test_split(
-            dataset.samples,
+            samples,
             test_size=validation_size,
             random_state=RANDOM_STATE
         )
@@ -70,7 +76,7 @@ def split_dataset(dataset: Dataset,
     else:
         # First split: separate test set
         train_val_split, test_split = train_test_split(
-            dataset.samples,
+            samples,
             test_size=test_size,
             random_state=RANDOM_STATE
         )
@@ -87,7 +93,7 @@ def split_dataset(dataset: Dataset,
     logger.info(f"{dataset.name.ljust(15)}"
                 f"{dataset.language.ljust(13)}"
                 f"{dataset.ai.ljust(17)}"
-                f"{str(len(dataset.samples)).ljust(10)}"
+                f"{str(len(samples)).ljust(10)}"
                 f"{str(len(train_split)).ljust(10)}"
                 f"{str(len(val_split)).ljust(10)}"
                 f"{str(len(test_split)).ljust(10)}")
@@ -97,18 +103,18 @@ def split_dataset(dataset: Dataset,
 
 def split_datasets(logger: Logger,
                    test_size: float | None = None,
-                   validation_size: float | None = None,
+                   val_size: float | None = None,
                    language_filter: str | None = None,
                    config: dict | None = None,) -> Splits:
     all_datasets = load_datasets()
 
     if config:
         logger.info(f"Preparing datasets (custom configuration) ...")
-    elif test_size and validation_size:
-        training_size = 1 - (validation_size + test_size)
+    elif test_size and val_size:
+        training_size = 1 - (val_size + test_size)
         logger.info(
             f"Preparing datasets (split: {int(training_size*100)}/"
-            f"{int(validation_size*100)}/{int(test_size*100)}) ..."
+            f"{int(val_size*100)}/{int(test_size*100)}) ..."
         )
     else:
         raise ValueError()
@@ -129,14 +135,16 @@ def split_datasets(logger: Logger,
             continue  # Skip this dataset
 
         if config:
-            validation_size = config[dataset.name][0]
-            test_size = config[dataset.name][1]
+            val_size = config[dataset.name].get('val_size', 0)
+            test_size = config[dataset.name].get('test_size', 0)
+            max_sample_count = config[dataset.name].get('max_sample_count')
 
         train, val, test = split_dataset(
             dataset,
-            validation_size,
+            val_size,
             test_size,
-            logger
+            logger,
+            max_sample_count=max_sample_count
         )
         train_samples.extend(train)
         val_samples.extend(val)
