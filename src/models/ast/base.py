@@ -5,9 +5,11 @@ import torch
 import numpy as np
 from transformers import T5EncoderModel, RobertaTokenizer
 from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
 
 from src.pre_processing.sample import Sample
-from src.pre_processing.ast import get_ast_representation
+from src.pre_processing.ast import (get_ast_representation,
+                                    extract_structural_features)
 from src.utils.results import log_results
 
 
@@ -31,6 +33,7 @@ class AstModel:
             random_state=42,
             class_weight='balanced'
         )
+        self.scaler = StandardScaler()
 
         # Set up device
         self.device = torch.device(
@@ -46,10 +49,10 @@ class AstModel:
         )
 
     def _get_code_embedding(self, sample: Sample):
-        ast_str = get_ast_representation(sample.code, sample.language)
+        ast_repr = get_ast_representation(sample.code, sample.language)
 
         inputs = self.tokenizer(
-            ast_str,
+            ast_repr,
             return_tensors="pt",
             padding=True,
             truncation=True,
@@ -61,12 +64,17 @@ class AstModel:
             # Use mean pooling of the last hidden states
             embeddings = outputs.last_hidden_state.mean(dim=1)
 
-        return embeddings.cpu().numpy().flatten()
+        embeddings = embeddings.cpu().numpy().flatten()
+
+        structural_features = extract_structural_features(ast_repr)
+
+        return np.concatenate((embeddings, structural_features))
 
     def train(self,
               train_samples: list[Sample],
               validation_samples: list[Sample]):
         # Prepare training dataset
+        self.logger.info("Generating AST code embeddings...\n")
         x_train = []
         y_train = []
         for sample in train_samples:
@@ -75,6 +83,10 @@ class AstModel:
 
         x_train = np.array(x_train)
         y_train = np.array(y_train)
+
+        # Scaler
+        self.logger.info("Scaling code embeddings...\n")
+        x_train = self.scaler.fit_transform(x_train)
 
         # Train the classifier
         self.logger.info("Training the classifier...")
@@ -91,7 +103,10 @@ class AstModel:
             x_val.append(self._get_code_embedding(sample))
             y_val.append(sample.label)
 
+        x_val = self.scaler.transform(x_val)
+
         # Evaluate the classifier
+        self.logger.info("Validating the classifier...")
         y_pred = self.classifier.predict(x_val)
 
         # Save results
@@ -105,7 +120,10 @@ class AstModel:
             x_test.append(self._get_code_embedding(sample))
             y_test.append(sample.label)
 
+        x_test = self.scaler.transform(x_test)
+
         # Make predictions
+        self.logger.info("Evaluating AST model...")
         y_pred = self.classifier.predict(x_test)
 
         # Save results
