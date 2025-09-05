@@ -15,11 +15,12 @@ class CodeBertModel:
     """ Fine-tuned CodeBERT model """
     MODEL_NAME = "microsoft/codebert-base"
     SAVED_MODEL_PATH = "./saved/codebert_model"
+    LOG_DIR = "./outputs/codebert_model"
 
     def __init__(self,
+                 logger: Logger,
                  num_train_epochs: int,
-                 batch_size: int,
-                 logger: Logger):
+                 batch_size: int):
         self.num_train_epochs = num_train_epochs
         self.batch_size = batch_size
 

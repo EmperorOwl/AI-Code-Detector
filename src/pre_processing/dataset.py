@@ -3,32 +3,20 @@ from logging import Logger
 
 from sklearn.model_selection import train_test_split
 
+from src.config import DATASETS, DATASET_PATH, RANDOM_STATE
 from src.pre_processing.sample import (load_samples_from_dir,
                                        load_samples_from_csv,
+                                       load_samples_from_jsonl,
                                        Sample)
 from src.utils.random import get_random_samples
 
 
-RANDOM_STATE = 42
-DATASET_PATH = "./datasets"
-DATASETS = [
-    # name, language, ai, path
-    ('gptsniffer', 'java', 'chatgpt', 'gptsniffer'),
-    ('humaneval', 'java', 'gpt_4', 'humaneval_chatgpt4_java_merged.csv'),
-    ('humaneval', 'java', 'chatgpt', 'humaneval_chatgpt_java_merged.csv'),
-    ('humaneval', 'java', 'gemini_pro', 'humaneval_gemini_java_merged.csv'),
-    ('humaneval', 'python', 'gpt_4', 'humaneval_chatgpt4_python_merged.csv'),
-    ('humaneval', 'python', 'chatgpt', 'humaneval_chatgpt_python_merged.csv'),
-    ('humaneval', 'python', 'gemini_pro', 'humaneval_gemini_python_merged.csv'),
-    ('mbpp', 'python', 'gpt_4', 'mbpp_chatgpt4_python_merged.csv'),
-    ('mbpp', 'python', 'chatgpt', 'mbpp_chatgpt_python_merged.csv'),
-    ('mbpp', 'python', 'gemini_pro', 'mbpp_gemini_python_merged.csv'),
-    ('codenet', 'python', 'gemini_flash', 'codenet_gemini_python.csv')
-]
-
-
 class Dataset:
-    def __init__(self, name: str, language: str, ai: str, samples: list[Sample]):
+    def __init__(self,
+                 name: str,
+                 language: str,
+                 ai: str,
+                 samples: list[Sample]):
         self.name = name
         self.language = language
         self.ai = ai
@@ -42,6 +30,8 @@ def load_datasets() -> list[Dataset]:
         full_path = os.path.join(DATASET_PATH, language, path)
         if full_path.endswith('.csv'):
             samples = load_samples_from_csv(full_path, language)
+        elif full_path.endswith('.jsonl'):
+            samples = load_samples_from_jsonl(full_path, language)
         else:
             samples = load_samples_from_dir(full_path, language)
         datasets.append(Dataset(name, language, ai, samples))
@@ -134,6 +124,7 @@ def split_datasets(logger: Logger,
                 or language_filter and language_filter != dataset.language):
             continue  # Skip this dataset
 
+        max_sample_count = None
         if config:
             val_size = config[dataset.name].get('val_size', 0)
             test_size = config[dataset.name].get('test_size', 0)

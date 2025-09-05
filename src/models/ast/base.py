@@ -19,12 +19,13 @@ class AstModel:
     """
     MODEL_NAME = "Salesforce/codet5p-110m-embedding"
     SAVED_MODEL_PATH = "./saved/ast_model"
+    LOG_DIR = './outputs/ast_model'
 
     def __init__(self,
-                 use_scaler: bool,
-                 add_structural_features: bool,
-                 max_iterations: int,
-                 logger: Logger) -> None:
+                 logger: Logger,
+                 use_scaler: bool = False,
+                 add_structural_features: bool = False,
+                 max_iterations: int = 1000) -> None:
         self.use_scaler = use_scaler
         self.add_structural_features = add_structural_features
         self.max_iterations = max_iterations

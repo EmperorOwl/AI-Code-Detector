@@ -1,4 +1,5 @@
 import os
+import json
 import pandas as pd
 
 
@@ -28,6 +29,7 @@ def clean_code(code: str) -> str:
 def load_samples_from_dir(directory: str, language: str) -> list[Sample]:
     """ Load samples from under a directory. """
     samples = []
+
     for filename in os.listdir(directory):
         label = filename.split('_')[0]
         # Reverse GPTSniffer's labels
@@ -37,10 +39,12 @@ def load_samples_from_dir(directory: str, language: str) -> list[Sample]:
             label = 1
         else:
             raise ValueError(f"Invalid label: {label}")
+
         filepath = os.path.join(directory, filename)
         with open(filepath, 'r', encoding='utf-8') as file:
             code = file.read()
             samples.append(Sample(code, label, language))
+
     return samples
 
 
@@ -48,6 +52,7 @@ def load_samples_from_csv(path: str, language: str) -> list[Sample]:
     """ Load samples from a CSV file. """
     samples = []
     df = pd.read_csv(path)
+
     for _, row in df.iterrows():
         code = row['code']
         if pd.isna(code):
@@ -59,5 +64,29 @@ def load_samples_from_csv(path: str, language: str) -> list[Sample]:
             label = 0
         else:
             raise ValueError(f"Invalid label: {row['label']}")
+
         samples.append(Sample(code, label, language))
+
+    return samples
+
+
+def load_samples_from_jsonl(path: str, language: str) -> list[Sample]:
+    """ Loads samples from a JSONL file. """
+    samples = []
+
+    with open(path, 'r', encoding='utf-8') as file:
+        for line in file:
+            line = line.strip()
+            data = json.loads(line)
+            code = data['code']
+
+            if data['label'] == 0:
+                label = 0
+            elif data['label'] == 1:
+                label = 1
+            else:
+                raise ValueError(f"Invalid label: {data['label']}")
+
+            samples.append(Sample(code, label, language))
+
     return samples
