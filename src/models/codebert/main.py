@@ -5,7 +5,7 @@ from src.config import CONFIG
 # Run configurations with base model
 for config in CONFIG:
     model_kwargs = {
-        'epochs': 3,
+        'num_train_epochs': 3,
         'batch_size': 16
     }
 

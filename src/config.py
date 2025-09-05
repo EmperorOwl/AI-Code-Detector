@@ -14,42 +14,50 @@ DATASETS = [
     ('mbpp', 'python', 'gemini_pro', 'mbpp_gemini_python_merged.csv'),
     ('codenet', 'python', 'gemini_flash', 'codenet_gemini_python.csv'),
 
-    # ('hmcorp', 'python', 'chatgpt', 'hmcorp.jsonl'),
-    # ('hmcorp', 'java', 'chatgpt', 'hmcorp.jsonl')
+    ('hmcorp', 'python', 'chatgpt', 'hmcorp.jsonl'),
+    ('hmcorp', 'java', 'chatgpt', 'hmcorp.jsonl')
 ]
 
-DEFAULT_SPLIT = {'test_size': 0.1, 'val_size': 0.1}
-JAVA_ONLY_CONFIG = {**DEFAULT_SPLIT, 'language_filter': 'java'}
-PYTHON_ONLY_CONFIG = {**DEFAULT_SPLIT, 'language_filter': 'python'}
-UNSEEN_CONFIG = {
+DEFAULT_SPLIT = {
+    'test_size': 0.1,
+    'val_size': 0.1,
+    'max_sample_count': 5000  # Limit big datasets (will randomly select)
+}
+DATASET_CONFIG_JAVA_ONLY = {**DEFAULT_SPLIT, 'language_filter': 'java'}
+DATASET_CONFIG_PYTHON_ONLY = {**DEFAULT_SPLIT, 'language_filter': 'python'}
+DATASET_CONFIG_UNSEEN = {
     'config': {
-        'gptsniffer': {'test_size': 1, 'max_sample_count': 155},
+        'gptsniffer': {'test_size': 1},
         'humaneval': {'val_size': 0.2},
         'mbpp': {'val_size': 0.2},
-        'codenet': {'test_size': 1, 'max_sample_count': 1091}
+        'hmcorp': {'val_size': 0.2, 'max_sample_count': 5000},
+        'codenet': {'test_size': 1, 'max_sample_count': 1480}
     }
 }
 
+CONFIG_ALL = {
+    'dataset_config': DEFAULT_SPLIT,
+    'log_file_suffix': 'all.log'
+}
+
+CONFIG_PYTHON_ONLY = {
+    'dataset_config': DATASET_CONFIG_PYTHON_ONLY,
+    'log_file_suffix': 'python.log'
+}
+
+CONFIG_JAVA_ONLY = {
+    'dataset_config': DATASET_CONFIG_JAVA_ONLY,
+    'log_file_suffix': 'java.log'
+}
+
+CONFIG_UNSEEN = {
+    'dataset_config': DATASET_CONFIG_UNSEEN,
+    'log_file_suffix': 'unseen.log'
+}
 
 CONFIG = [
-    # All
-    {
-        'dataset_config': DEFAULT_SPLIT,
-        'log_file_suffix': 'all.log'
-    },
-    # Java Only
-    {
-        'dataset_config': JAVA_ONLY_CONFIG,
-        'log_file_suffix': 'java.log'
-    },
-    # Python Only
-    {
-        'dataset_config': PYTHON_ONLY_CONFIG,
-        'log_file_suffix': 'python.log'
-    },
-    # Unseen
-    {
-        'dataset_config': UNSEEN_CONFIG,
-        'log_file_suffix': 'unseen.log'
-    },
+    CONFIG_ALL,
+    CONFIG_JAVA_ONLY,
+    CONFIG_PYTHON_ONLY,
+    CONFIG_UNSEEN
 ]

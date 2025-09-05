@@ -16,3 +16,6 @@ saved/
 
 # VSCode
 .vscode
+
+# Playground
+playground.py

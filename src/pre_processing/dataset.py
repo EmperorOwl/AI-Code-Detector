@@ -49,7 +49,7 @@ def split_dataset(dataset: Dataset,
                   max_sample_count: int | None = None) -> Splits:
     """Split samples into train, validation, and test sets."""
     samples = dataset.samples
-    if max_sample_count is not None:
+    if max_sample_count is not None and max_sample_count < len(samples):
         samples = get_random_samples(samples, max_sample_count)
 
     if test_size == 1:
@@ -94,8 +94,9 @@ def split_dataset(dataset: Dataset,
 def split_datasets(logger: Logger,
                    test_size: float | None = None,
                    val_size: float | None = None,
+                   max_sample_count: int | None = None,
                    language_filter: str | None = None,
-                   config: dict | None = None,) -> Splits:
+                   config: dict | None = None) -> Splits:
     all_datasets = load_datasets()
 
     if config:
@@ -124,7 +125,6 @@ def split_datasets(logger: Logger,
                 or language_filter and language_filter != dataset.language):
             continue  # Skip this dataset
 
-        max_sample_count = None
         if config:
             val_size = config[dataset.name].get('val_size', 0)
             test_size = config[dataset.name].get('test_size', 0)

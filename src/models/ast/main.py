@@ -3,7 +3,7 @@ from src.models.helper import train_and_evaluate_model
 
 from src.config import CONFIG
 
-# Run configuratios with base model
+# Run configurations with base model
 for config in CONFIG:
     model_kwargs = {}
 
