@@ -7,6 +7,7 @@ from transformers import T5EncoderModel, RobertaTokenizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 
+from src.config import RANDOM_STATE
 from src.pre_processing.sample import Sample
 from src.pre_processing.ast import (get_ast_representation,
                                     extract_structural_features)
@@ -35,7 +36,7 @@ class AstModel:
         self.embedding_model = T5EncoderModel.from_pretrained(self.MODEL_NAME)
         self.classifier = LogisticRegression(
             max_iter=self.max_iterations,
-            random_state=42,
+            random_state=RANDOM_STATE,
             class_weight='balanced',
             # C=0.1,  # Regularization to prevent overfitting
             # solver='liblinear'  # Better for small datasets

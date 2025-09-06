@@ -8,7 +8,6 @@ from src.pre_processing.sample import (load_samples_from_dir,
                                        load_samples_from_csv,
                                        load_samples_from_jsonl,
                                        Sample)
-from src.utils.random import get_random_samples
 
 
 class Dataset:
@@ -47,7 +46,7 @@ def split_dataset(dataset: Dataset,
                   test_size,
                   logger: Logger,
                   max_sample_count: int | None = None) -> Splits:
-    """Split samples into train, validation, and test sets."""
+    """ Split dataset samples into train, validation, and test sets. """
     samples = dataset.samples
     if max_sample_count is not None and max_sample_count < len(samples):
         samples = get_random_samples(samples, max_sample_count)
@@ -156,3 +155,25 @@ def split_datasets(logger: Logger,
     logger.info("")
 
     return train_samples, val_samples, test_samples
+
+
+def get_random_samples(samples: list[Sample], size: int) -> list:
+    """ Randomly sample from the list of samples while maintaining the original 
+    ratio of labels.
+    """
+    # Extract labels for stratification
+    labels = [sample.label for sample in samples]
+
+    # Calculate the fraction to sample
+    sample_fraction = size / len(samples)
+
+    # Use stratified sampling to maintain label distribution
+    sampled_samples, _, _, _ = train_test_split(
+        samples,
+        labels,
+        train_size=sample_fraction,
+        stratify=labels,
+        random_state=42
+    )
+
+    return sampled_samples

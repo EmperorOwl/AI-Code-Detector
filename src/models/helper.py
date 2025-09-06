@@ -18,13 +18,15 @@ def train_and_evaluate_model(model_class: type[CodeBertModel | AstModel],
     # Create logger
     log_file_path = model_class.LOG_DIR + "/" + log_file_name
     logger = get_logger(model_name, log_file_path)
+
+    # Log start info
     logger.info(
         f"Timestamp: {time.strftime('%d/%m/%Y %I:%M %p',
                                     time.localtime(start_time))}"
     )
     logger.info(f"Log: {log_file_path}\n")
 
-    # Load datasets
+    # Load and split datasets
     train, validation, test = split_datasets(logger, **dataset_kwargs)
 
     # Initialise model
@@ -33,10 +35,10 @@ def train_and_evaluate_model(model_class: type[CodeBertModel | AstModel],
     # Train model
     model.train(train, validation)
 
-    # Evaluate model
+    # Test model
     model.predict(test)
 
-    # Output runtime
+    # Log runtime
     end_time = time.time()
     seconds = end_time - start_time
     logger.info(f"Runtime: {seconds:.2f} seconds ({seconds / 60:.2f} minutes)")
