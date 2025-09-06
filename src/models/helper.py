@@ -20,8 +20,9 @@ def train_and_evaluate_model(model_class: type[CodeBertModel | AstModel],
     logger = get_logger(model_name, log_file_path)
     logger.info(
         f"Timestamp: {time.strftime('%d/%m/%Y %I:%M %p',
-                                    time.localtime(start_time))}\n"
+                                    time.localtime(start_time))}"
     )
+    logger.info(f"Log: {log_file_path}\n")
 
     # Load datasets
     train, validation, test = split_datasets(logger, **dataset_kwargs)

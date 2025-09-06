@@ -95,6 +95,7 @@ def split_datasets(logger: Logger,
                    test_size: float | None = None,
                    val_size: float | None = None,
                    max_sample_count: int | None = None,
+                   name_filter: str | None = None,
                    language_filter: str | None = None,
                    config: dict | None = None) -> Splits:
     all_datasets = load_datasets()
@@ -122,6 +123,7 @@ def split_datasets(logger: Logger,
     train_samples, val_samples, test_samples = [], [], []
     for dataset in all_datasets:
         if (config and dataset.name not in config
+                or name_filter and name_filter != dataset.name
                 or language_filter and language_filter != dataset.language):
             continue  # Skip this dataset
 
