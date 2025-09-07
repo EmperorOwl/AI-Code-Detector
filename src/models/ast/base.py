@@ -57,7 +57,7 @@ class AstModel:
         )
 
     def _get_code_embedding(self, sample: Sample):
-        ast_repr = get_ast_representation(sample.code, sample.language)
+        ast_repr = get_ast_representation(sample.code, sample.language, include_tokens=True)
 
         inputs = self.tokenizer(
             ast_repr,

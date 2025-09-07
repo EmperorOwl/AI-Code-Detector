@@ -9,12 +9,14 @@ PYTHON_LANGUAGE = Language(tspython.language())
 
 
 def parse_with_treesitter(code: str, language: Language) -> Node:
+    """ Returns the parsed AST representation starting from the root node """
     parser = Parser(language)
     tree = parser.parse(bytes(code, "utf8"))
     return tree.root_node
 
 
 def get_node_types(node: Node) -> list[str]:
+    """ Recursively get all node types in the AST """
     types = [node.type]
     for child in node.children:
         types.extend(get_node_types(child))
@@ -22,6 +24,7 @@ def get_node_types(node: Node) -> list[str]:
 
 
 def serialise_ast(node: Node) -> str:
+    """ Basic AST serialization """
     if not node.children:
         return node.type
 
@@ -29,16 +32,54 @@ def serialise_ast(node: Node) -> str:
     for child in node.children:
         result += " " + serialise_ast(child)
     result += ")"
+
     return result
 
 
-def get_ast_representation(code: str, language: str) -> str:
+def get_node_text(node: Node, code: bytes) -> str:
+    """ Returns the text that a node corresponds to in the source code """
+    start_byte = node.start_byte
+    end_byte = node.end_byte
+    return code[start_byte:end_byte].decode('utf8')
+
+
+def serialise_ast_with_tokens(node: Node, code: bytes) -> list[str]:
+    """ AST serialisation that maps an AST node to a sequence of tokens
+    including actual code tokens (i.e. includes both structure and content)
+    """
+    seq = []
+    name = node.type
+    text = get_node_text(node, code)
+
+    # Check if the node is a leaf, identifier or literal
+    if (len(node.children) == 0
+            or node.type in ['identifier', 'string_literal', 'number_literal']):
+        seq.append(text)
+    else:
+        # For non-leaf nodes, use the bracket notation
+        seq.append(f"{name}::left")
+        for child in node.children:
+            seq.extend(serialise_ast_with_tokens(child, code))
+        seq.append(f"{name}::right")
+
+    return seq
+
+
+def get_ast_representation(code: str,
+                           language: str,
+                           include_tokens: bool = False) -> str:
+    """ Returns the AST representation of the code as string. """
     if language == 'python':
         ast_node = parse_with_treesitter(code, PYTHON_LANGUAGE)
     elif language == 'java':
         ast_node = parse_with_treesitter(code, JAVA_LANGUAGE)
     else:
         raise ValueError(f"Unsupported language: {language}")
+
+    if include_tokens:
+        code_bytes = bytes(code, "utf8")
+        token_seq = serialise_ast_with_tokens(ast_node, code_bytes)
+        return ' '.join(token_seq)
 
     return serialise_ast(ast_node)
 

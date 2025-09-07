@@ -21,4 +21,6 @@ https://github.com/google-research/google-research/blob/master/mbpp/README.md
 ```bash
 python -m src.models.codebert.main
 python -m src.models.ast.main
+
+python -m src.pre_processing.tests.test_ast_serialisation
 ```
