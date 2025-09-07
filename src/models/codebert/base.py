@@ -57,15 +57,19 @@ class BaseTransformerModel:
             use_ast=self.use_ast,
             max_length=self.MAX_LENGTH
         )
-        print("Train Dataset Truncated Count:", train_dataset.truncated_count)
+        self.logger.info(
+            "Train Dataset Truncated Count:", train_dataset.truncated_count
+        )
         validation_dataset = CodeDataset(
             self.tokenizer,
             validation_samples,
             use_ast=self.use_ast,
             max_length=self.MAX_LENGTH
         )
-        print("Validation Dataset Truncated Count:",
-              validation_dataset.truncated_count)
+        self.logger.info(
+            "Validation Dataset Truncated Count:",
+            validation_dataset.truncated_count
+        )
 
         # Calculate warm up and logging steps
         steps_per_epoch = len(train_dataset) // self.batch_size
@@ -125,6 +129,10 @@ class BaseTransformerModel:
             test_samples,
             use_ast=self.use_ast,
             max_length=self.MAX_LENGTH
+        )
+        self.logger.info(
+            "Test Dataset Truncated Count:",
+            test_dataset.truncated_count
         )
         test_dataloader = DataLoader(
             test_dataset,
