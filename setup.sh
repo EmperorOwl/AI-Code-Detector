@@ -1,6 +1,6 @@
 pip install pandas
 pip install transformers
-pip install pip install transformers[torch]
+pip install transformers[torch]
 pip install scikit-learn
 pip install tree-sitter
 pip install tree-sitter-java
