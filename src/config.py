@@ -21,10 +21,19 @@ DATASETS = [
 DEFAULT_SPLIT = {
     'test_size': 0.1,
     'val_size': 0.1,
-    'max_sample_count': 5000  # Limit big datasets (will randomly select)
 }
-DATASET_CONFIG_JAVA_ONLY = {**DEFAULT_SPLIT, 'language_filter': 'java'}
-DATASET_CONFIG_PYTHON_ONLY = {**DEFAULT_SPLIT, 'language_filter': 'python'}
+DATASET_CONFIG_ALL = {
+    **DEFAULT_SPLIT,
+    'max_sample_count': 5000  # Limit to 5000 randomly selected samples
+}
+DATASET_CONFIG_JAVA_ONLY = {
+    **DATASET_CONFIG_ALL,
+    'language_filter': 'java'
+}
+DATASET_CONFIG_PYTHON_ONLY = {
+    **DATASET_CONFIG_ALL,
+    'language_filter': 'python'
+}
 DATASET_CONFIG_UNSEEN = {
     'config': {
         'gptsniffer': {'test_size': 1},
@@ -36,7 +45,7 @@ DATASET_CONFIG_UNSEEN = {
 }
 
 CONFIG_ALL = {
-    'dataset_config': DEFAULT_SPLIT,
+    'dataset_config': DATASET_CONFIG_ALL,
     'log_file_suffix': 'all.log'
 }
 
