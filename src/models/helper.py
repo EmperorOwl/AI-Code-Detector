@@ -1,12 +1,12 @@
 import time
 
-from src.models.codebert.base import CodeBertModel
+from src.models.codebert.base import BaseTransformerModel
 from src.models.ast.base import AstModel
 from src.pre_processing.dataset import split_datasets
 from src.utils.logger import get_logger
 
 
-def train_and_evaluate_model(model_class: type[CodeBertModel | AstModel],
+def train_and_evaluate_model(model_class: type[BaseTransformerModel | AstModel],
                              model_kwargs: dict,
                              dataset_kwargs: dict,
                              log_file_name: str):

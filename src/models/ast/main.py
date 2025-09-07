@@ -16,15 +16,15 @@ for config in CONFIG:
 
 
 # Run configurations with improved model
-for config in CONFIG:
-    model_kwargs = {
-        'use_scaler': True,
-        'add_structural_features': True
-    }
+# for config in CONFIG:
+#     model_kwargs = {
+#         'use_scaler': True,
+#         'add_structural_features': True
+#     }
 
-    train_and_evaluate_model(
-        model_class=AstModel,
-        model_kwargs=model_kwargs,
-        dataset_kwargs=config['dataset_config'],
-        log_file_name='improved_' + config['log_file_suffix']
-    )
+#     train_and_evaluate_model(
+#         model_class=AstModel,
+#         model_kwargs=model_kwargs,
+#         dataset_kwargs=config['dataset_config'],
+#         log_file_name='improved_' + config['log_file_suffix']
+#     )

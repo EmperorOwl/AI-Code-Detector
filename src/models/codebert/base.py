@@ -11,23 +11,27 @@ from src.utils.callback import MetricsCallback
 from src.utils.results import log_results
 
 
-class CodeBertModel:
-    """ Fine-tuned CodeBERT model """
-    MODEL_NAME = "microsoft/codebert-base"
-    SAVED_MODEL_PATH = "./saved/codebert_model"
-    LOG_DIR = "./outputs/codebert_model"
+class BaseTransformerModel:
+    """ Fine-tuned CodeBERT-compatible model (supports CodeBERT, UniXcoder) """
+    MODEL_NAME = ""
+    PRETRAINED_NAME = ""
+    SAVED_MODEL_DIR = "./saved/"
+    LOG_DIR = "./outputs/"
+    MAX_LENGTH = 512
 
     def __init__(self,
                  logger: Logger,
                  num_train_epochs: int,
-                 batch_size: int):
+                 batch_size: int,
+                 use_ast: bool = False):
         self.num_train_epochs = num_train_epochs
         self.batch_size = batch_size
+        self.use_ast = use_ast
 
         # Set up tokenizer and model
-        self.tokenizer = RobertaTokenizer.from_pretrained(self.MODEL_NAME)
+        self.tokenizer = RobertaTokenizer.from_pretrained(self.PRETRAINED_NAME)
         self.model = RobertaForSequenceClassification.from_pretrained(
-            self.MODEL_NAME,
+            self.PRETRAINED_NAME,
             num_labels=2
         )
 
@@ -40,15 +44,28 @@ class CodeBertModel:
         # Set up logger
         self.logger = logger
         self.logger.info(
-            f"CodeBERT model initialized using device: {self.device}\n"
+            f"{self.MODEL_NAME} model initialized using device: {self.device}\n"
         )
 
     def train(self,
               train_samples: list[Sample],
               validation_samples: list[Sample]):
         # Prepare datasets
-        train_dataset = CodeDataset(self.tokenizer, train_samples)
-        validation_dataset = CodeDataset(self.tokenizer, validation_samples)
+        train_dataset = CodeDataset(
+            self.tokenizer,
+            train_samples,
+            use_ast=self.use_ast,
+            max_length=self.MAX_LENGTH
+        )
+        print("Train Dataset Truncated Count:", train_dataset.truncated_count)
+        validation_dataset = CodeDataset(
+            self.tokenizer,
+            validation_samples,
+            use_ast=self.use_ast,
+            max_length=self.MAX_LENGTH
+        )
+        print("Validation Dataset Truncated Count:",
+              validation_dataset.truncated_count)
 
         # Calculate warm up and logging steps
         steps_per_epoch = len(train_dataset) // self.batch_size
@@ -57,7 +74,8 @@ class CodeBertModel:
         logging_steps = steps_per_epoch // 4  # 25% of epoch steps
 
         self.logger.info(
-            f"Training CodeBERT Model (epochs: {self.num_train_epochs}, "
+            f"Training {self.MODEL_NAME} Model ("
+            f"epochs: {self.num_train_epochs}, "
             f"batch_size: {self.batch_size}) ..."
         )
         self.logger.info(f"{'Epoch'.ljust(15)}"
@@ -102,7 +120,12 @@ class CodeBertModel:
 
     def predict(self, test_samples: list[Sample]):
         # Prepare test dataset
-        test_dataset = CodeDataset(self.tokenizer, test_samples)
+        test_dataset = CodeDataset(
+            self.tokenizer,
+            test_samples,
+            use_ast=self.use_ast,
+            max_length=self.MAX_LENGTH
+        )
         test_dataloader = DataLoader(
             test_dataset,
             batch_size=self.batch_size,
@@ -110,7 +133,7 @@ class CodeBertModel:
         )
 
         # Evaluate model
-        self.logger.info("Evaluating CodeBERT Model...")
+        self.logger.info(f"Evaluating {self.MODEL_NAME} Model...")
         self.model.eval()
         y_true = []
         y_pred = []
@@ -129,8 +152,23 @@ class CodeBertModel:
         log_results(y_true, y_pred, self.logger)
 
     def save(self):
-        path = self.SAVED_MODEL_PATH
+        path = self.SAVED_MODEL_DIR
         os.makedirs(path, exist_ok=True)
         self.tokenizer.save_pretrained(path)
         self.model.save_pretrained(path)
-        self.logger.info(f"CodeBERT model saved to {path}")
+        self.logger.info(f"{self.MODEL_NAME} model saved to {path}")
+
+
+class CodeBertModel(BaseTransformerModel):
+    MODEL_NAME = "CodeBERT"
+    PRETRAINED_NAME = "microsoft/codebert-base"
+    SAVED_MODEL_DIR = "./saved/codebert"
+    LOG_DIR = "./outputs/codebert_model"
+
+
+class UniXcoderModel(BaseTransformerModel):
+    MODEL_NAME = "UniXcoder"
+    PRETRAINED_NAME = "microsoft/unixcoder-base"
+    SAVED_MODEL_DIR = "./saved/unixcoder"
+    LOG_DIR = "./outputs/unixcoder_model"
+    MAX_LENGTH = 1024
