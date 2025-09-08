@@ -80,7 +80,8 @@ class BaseTransformerModel:
         self.logger.info(
             f"Training {self.MODEL_NAME} Model ("
             f"epochs: {self.num_train_epochs}, "
-            f"batch_size: {self.batch_size}) ..."
+            f"batch_size: {self.batch_size}, "
+            f"use_ast: {str(self.use_ast).lower()}) ..."
         )
         self.logger.info(f"{'Epoch'.ljust(15)}"
                          f"{'Train Loss'.ljust(15)}"

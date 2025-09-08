@@ -30,7 +30,7 @@ class CodeDataset(Dataset):
                 text_input = get_ast_representation(
                     sample.code,
                     sample.language,
-                    include_tokens=False
+                    include_tokens=True
                 )
 
             inputs = self.tokenizer.encode_plus(text_input,
