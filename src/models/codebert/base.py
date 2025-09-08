@@ -58,17 +58,16 @@ class BaseTransformerModel:
             max_length=self.MAX_LENGTH
         )
         self.logger.info(
-            "Train Dataset Truncated Count:", train_dataset.truncated_count
+            f"Train Dataset Truncated Count: {train_dataset.truncated_count}",
         )
-        validation_dataset = CodeDataset(
+        val_datase = CodeDataset(
             self.tokenizer,
             validation_samples,
             use_ast=self.use_ast,
             max_length=self.MAX_LENGTH
         )
         self.logger.info(
-            "Validation Dataset Truncated Count:",
-            validation_dataset.truncated_count
+            f"Val Dataset Truncated Count: {val_dataset.truncated_count}",
         )
 
         # Calculate warm up and logging steps
@@ -114,7 +113,7 @@ class BaseTransformerModel:
             model=self.model,
             args=train_args,
             train_dataset=train_dataset,
-            eval_dataset=validation_dataset,
+            eval_dataset=val_dataset,
         )
 
         trainer.callback_handler.callbacks.pop()
@@ -132,8 +131,7 @@ class BaseTransformerModel:
             max_length=self.MAX_LENGTH
         )
         self.logger.info(
-            "Test Dataset Truncated Count:",
-            test_dataset.truncated_count
+            f"Test Dataset Truncated Count: {test_dataset.truncated_count}",
         )
         test_dataloader = DataLoader(
             test_dataset,
