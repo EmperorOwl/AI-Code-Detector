@@ -1,3 +1,6 @@
+git lfs install
+git lfs pull
+
 pip install pandas
 pip install transformers
 pip install transformers[torch]
