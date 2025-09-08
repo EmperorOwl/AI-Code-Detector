@@ -21,8 +21,8 @@ from src.config import CONFIG
 # Run configurations with candidate model
 for config in CONFIG:
     model_kwargs = {
-        'num_train_epochs': 3,
-        'batch_size': 16,
+        'num_train_epochs': 6,
+        'batch_size': 32,
         'use_ast': True
     }
 

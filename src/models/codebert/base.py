@@ -60,7 +60,7 @@ class BaseTransformerModel:
         self.logger.info(
             f"Train Dataset Truncated Count: {train_dataset.truncated_count}",
         )
-        val_datase = CodeDataset(
+        val_dataset = CodeDataset(
             self.tokenizer,
             validation_samples,
             use_ast=self.use_ast,
