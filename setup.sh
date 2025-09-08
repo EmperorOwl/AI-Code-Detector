@@ -1,6 +1,3 @@
-git lfs install
-git lfs pull
-
 pip install pandas
 pip install transformers
 pip install transformers[torch]
@@ -12,3 +9,4 @@ pip install tree-sitter-python
 mkdir outputs
 mkdir outputs/codebert_model
 mkdir outputs/ast_model
+mkdir outputs/unixcoder_model
