@@ -138,6 +138,8 @@ class AstModel:
             x_test.append(self._get_code_embedding(sample))
             y_test.append(sample.label)
 
+        x_test = np.array(x_test)
+        
         # Scaler
         if self.use_scaler:
             x_test = self.scaler.transform(x_test)
@@ -145,6 +147,10 @@ class AstModel:
         # Make predictions
         self.logger.info("Evaluating AST model...")
         y_pred = self.classifier.predict(x_test)
+        y_pred_proba = self.classifier.predict_proba(x_test)
 
         # Save results
         log_results(y_test, y_pred, self.logger)
+        
+        # Return predictions and probabilities
+        return y_pred, y_pred_proba

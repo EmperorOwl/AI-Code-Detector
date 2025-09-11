@@ -10,3 +10,4 @@ mkdir outputs
 mkdir outputs/codebert_model
 mkdir outputs/ast_model
 mkdir outputs/unixcoder_model
+mkdir outputs/ensemble_model

@@ -22,6 +22,7 @@ https://github.com/microsoft/CodeBERT/issues/187
 ```bash
 python -m src.models.codebert.main
 python -m src.models.ast.main
+python -m src.models.ensemble.main
 
 python -m src.playground
 

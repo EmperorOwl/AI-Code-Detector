@@ -51,6 +51,7 @@ class BaseTransformerModel:
               train_samples: list[Sample],
               validation_samples: list[Sample]):
         # Prepare datasets
+        self.logger.info("Processing samples...")
         train_dataset = CodeDataset(
             self.tokenizer,
             train_samples,
@@ -67,7 +68,7 @@ class BaseTransformerModel:
             max_length=self.MAX_LENGTH
         )
         self.logger.info(
-            f"Val Dataset Truncated Count: {val_dataset.truncated_count}",
+            f"Val Dataset Truncated Count: {val_dataset.truncated_count}\n",
         )
 
         # Calculate warm up and logging steps
@@ -144,6 +145,7 @@ class BaseTransformerModel:
         self.model.eval()
         y_true = []
         y_pred = []
+        y_pred_proba = []
         with torch.no_grad():
             for batch in test_dataloader:
                 input_ids = batch['input_ids'].to(self.device)
@@ -151,12 +153,17 @@ class BaseTransformerModel:
                 labels = batch['labels'].to(self.device)
                 outputs = self.model(input_ids, attention_mask=attention_mask)
                 logits = outputs.logits
+                probs = torch.softmax(logits, dim=1)
                 predictions = torch.argmax(logits, dim=1)
                 y_true += labels.tolist()
                 y_pred += predictions.tolist()
+                y_pred_proba.extend(probs.cpu().numpy())
 
         # Save results
         log_results(y_true, y_pred, self.logger)
+
+        # Return predictions and probabilities
+        return y_pred, y_pred_proba
 
     def save(self):
         path = self.SAVED_MODEL_DIR
