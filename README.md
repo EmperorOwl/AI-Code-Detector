@@ -11,6 +11,7 @@
 ```bash
 # Prepare Droid Dataset
 python -m src.dataset_processing.droid_dataset
+python -m src.dataset_processing.dataset_tokenizer
 
 # Train model
 python -m src.models.transformer.train --model codebert --test

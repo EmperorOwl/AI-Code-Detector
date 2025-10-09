@@ -1,6 +1,7 @@
 from logging import Logger
 
 import pandas as pd
+import numpy as np
 from transformers import AutoTokenizer, PreTrainedTokenizer
 from tqdm import tqdm
 
@@ -98,18 +99,20 @@ class DatasetTokenizer:
         """
         self.logger.info("Analyzing tokenization results...")
 
-        # Calculate token length statistics
-        token_lengths = []
-        for input_ids in df['input_ids']:
-            # Count non-padding tokens
-            length = len([token for token in input_ids
-                         if token != self.tokenizer.pad_token_id])
-            token_lengths.append(length)
+        # Convert input_ids to numpy array for vectorized operations
+        input_ids_array = np.array(df['input_ids'].tolist())
 
-        min_length = min(token_lengths)
-        max_length = max(token_lengths)
-        average_length = sum(token_lengths) / len(token_lengths)
-        median_length = sorted(token_lengths)[len(token_lengths)//2]
+        # Calculate token lengths using vectorized operations
+        # Count non-padding tokens for each sample
+        token_lengths = np.sum(
+            input_ids_array != self.tokenizer.pad_token_id, axis=1
+        )
+
+        # Calculate statistics using numpy functions
+        min_length = int(np.min(token_lengths))
+        max_length = int(np.max(token_lengths))
+        average_length = float(np.mean(token_lengths))
+        median_length = int(np.median(token_lengths))
 
         self.logger.info(f"\nToken length statistics:")
         self.logger.info(f"  - Min length: {min_length}")
@@ -118,10 +121,8 @@ class DatasetTokenizer:
         self.logger.info(f"  - Median length: {median_length}")
 
         # Show truncation statistics
-        max_length = len(df['input_ids'].iloc[0])
-        truncated_count = sum(
-            1 for length in token_lengths if length == max_length
-        )
+        max_seq_length = input_ids_array.shape[1]
+        truncated_count = int(np.sum(token_lengths == max_seq_length))
         truncated_percentage = truncated_count / len(df) * 100
         not_truncated_count = len(df) - truncated_count
         not_truncated_percentage = not_truncated_count / len(df) * 100
@@ -141,7 +142,7 @@ def main():
     from src.models.transformer import CodeBertModel
 
     # Initialize logger
-    logger = get_logger("dataset_tokenizer", "dataset_tokenizer.log")
+    logger = get_logger("dataset_tokenizer", "outputs/dataset_tokenizer.log")
 
     # Load dataset
     helper = DatasetHelper(logger)
