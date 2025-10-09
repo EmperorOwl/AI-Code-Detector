@@ -6,6 +6,7 @@ import pandas as pd
 import torch
 from transformers import (
     AutoModelForSequenceClassification,
+    EarlyStoppingCallback,
     Trainer,
     TrainingArguments
 )
@@ -124,6 +125,7 @@ class TransformerModel:
             args=train_args,
             train_dataset=train_dataset,
             eval_dataset=val_dataset,
+            callbacks=[EarlyStoppingCallback(early_stopping_patience=3)]
         )
 
         # Train the model
