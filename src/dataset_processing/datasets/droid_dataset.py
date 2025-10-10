@@ -1,14 +1,12 @@
-import time
 from collections import defaultdict
-from logging import Logger
 
 import pandas as pd
-from datasets import load_dataset as load_dataset_from_huggingface
 
-from src.dataset_processing.dataset_helper import DatasetHelper
+from src.dataset_processing.datasets.abstract_dataset import AbstractDataset
 
 
-class DroidDataset:
+class DroidDataset(AbstractDataset):
+    DATASET_NAME = 'droid_dataset'
     PATH = "project-droid/DroidCollection"
     SAMPLING_REQUIREMENTS = {
         ('Java', 'Human'): 12500,
@@ -21,39 +19,17 @@ class DroidDataset:
         ('Python', 'GPT-4o mini'): 7000,
         ('Python', 'DeepSeek'): 1500,
     }
-
-    def __init__(self, logger: Logger):
-        """
-        Initialize the DroidDataset.
-
-        Args:
-            logger (Logger): Logger instance for all operations
-        """
-        self.logger = logger
-        self.helper = DatasetHelper(logger)
+    OUTPUT_FILENAME = 'droid_dataset.csv'
 
     def load(self) -> pd.DataFrame:
-        """
-        Load the DroidCollection dataset from Hugging Face.
+        df = self.helper.load_dataset_from_huggingface(
+            DroidDataset.PATH,
+            splits=['train', 'dev', 'test']
+        )
+        return df
 
-        Returns:
-            pd.DataFrame: Raw dataset from all splits combined
-        """
-        self.logger.info("Loading DroidCollection dataset...")
-
-        # Load the dataset
-        dataset = load_dataset_from_huggingface(DroidDataset.PATH)
-
-        # Convert all splits to pandas DataFrames and combine them
-        train_df = pd.DataFrame(dataset['train'])  # type: ignore
-        dev_df = pd.DataFrame(dataset['dev'])  # type: ignore
-        test_df = pd.DataFrame(dataset['test'])  # type: ignore
-
-        # Combine all splits into one DataFrame
-        df = pd.concat([train_df, dev_df, test_df], ignore_index=True)
-
-        # Print original dataset information
-        self.logger.info(f"\nDataset columns:")
+    def info(self, df: pd.DataFrame) -> None:
+        self.logger.info(f"Dataset columns:")
         for column in df.columns.tolist():
             self.logger.info(f"  - {column}")
 
@@ -78,22 +54,9 @@ class DroidDataset:
             self.logger.info(f"  - {generator}")
         self.logger.info("")
 
-        return df
+        return
 
     def filter(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Filter the dataset for target languages, models, and labels.
-
-        Args:
-            df (pd.DataFrame): Raw dataset
-
-        Returns:
-            pd.DataFrame: Filtered dataset with standardized columns:
-                - Code: The actual code
-                - Language: Programming language ('Python', 'Java')
-                - Model: Model name ('Human', 'GPT-4o', 'GPT-4o mini', etc)
-                - Label: 0 for human, 1 for AI
-        """
         self.logger.info("Filtering DroidCollection dataset...")
         self.logger.info(f"✓ Total samples in dataset: {len(df):,}")
 
@@ -125,37 +88,36 @@ class DroidDataset:
             f"(HUMAN_GENERATED/MACHINE_GENERATED): {len(filtered_df):,}"
         )
 
-        # Create standardized dataframe
-        standardized_df = pd.DataFrame()
-        standardized_df['Code'] = filtered_df['Code']
-        standardized_df['Language'] = filtered_df['Language']
+        self.logger.info("")
+        return filtered_df
 
-        # Standardize model names
-        model_mapping = {
+    def standardize(self, df: pd.DataFrame) -> pd.DataFrame:
+        self.logger.info("Standardizing dataset...")
+
+        # Create standardized dataframe
+        df = df.reset_index(drop=True)
+        standardized_df = pd.DataFrame()
+        standardized_df['Dataset'] = ['DroidCollection'] * len(df)
+        standardized_df['Code'] = df['Code']
+        standardized_df['Language'] = df['Language']
+        standardized_df['Model'] = df['Model_Family'].map({
             'gpt-4o': 'GPT-4o',
             'gpt-4o-mini': 'GPT-4o mini',
             'deepseek-ai': 'DeepSeek',
             'human': 'Human'
-        }
-        standardized_df['Model'] = filtered_df['Model_Family'].map(
-            model_mapping)
-
-        # Standardize Label column (0 for human, 1 for AI)
+        })  # Standardize model names
         standardized_df['Label'] = (
-            filtered_df['Label'] == 'MACHINE_GENERATED'
-        ).astype(int)
+            df['Label'] == 'MACHINE_GENERATED'
+        ).astype(int)  # Standardize Label column (0 for human, 1 for AI)
 
+        self.logger.info(
+            f"✓ Dataset standardized with columns "
+            f"{', '.join(standardized_df.columns.tolist())}"
+        )
         self.logger.info("")
-
         return standardized_df
 
     def analyse(self, df: pd.DataFrame) -> None:
-        """
-        Analyze the dataset and print results in table format.
-
-        Args:
-            df (pd.DataFrame): Dataset to analyze
-        """
         results = defaultdict(lambda: defaultdict(int))
 
         for _, row in df.iterrows():
@@ -230,63 +192,10 @@ class DroidDataset:
         self.logger.info("-" * 80)
         self.logger.info("")
 
-    def prepare(self) -> None:
-        """
-        Main workflow to prepare the dataset.
-
-        Steps:
-        1. Load the DroidCollection dataset
-        2. Filter the dataset
-        3. Analyze the filtered dataset
-        4. Sample according to requirements
-        5. Analyze the sampled dataset
-        6. Add ID column
-        7. Add Line_Count column
-        8. Save to CSV
-        """
-        start_time = time.time()
-
-        # Step 1: Load dataset
-        raw_df = self.load()
-
-        # Step 2: Filter dataset
-        filtered_df = self.filter(raw_df)
-
-        # Step 3: Analyze filtered dataset
-        self.analyse(filtered_df)
-
-        # Step 4: Sample the droid dataset
-        sampled_df = self.helper.sample_dataset(
-            filtered_df,
-            DroidDataset.SAMPLING_REQUIREMENTS
-        )
-
-        # Step 5: Analyze sampled dataset
-        self.analyse(sampled_df)
-
-        # Step 6: Add ID column
-        df = self.helper.add_id_column(sampled_df)
-
-        # Step 7: Add Line_Count column
-        df = self.helper.add_line_count_column(df)
-        self.helper.analyse_line_count(df)
-
-        # Step 8: Save to CSV
-        self.helper.save_dataset_to_csv(df)
-
-        # Calculate and print runtime
-        end_time = time.time()
-        seconds = end_time - start_time
-        self.logger.info(f"Runtime: {seconds:.2f} seconds "
-                         f"({seconds / 60:.2f} minutes)")
-
 
 def main():
-    from src.utils.logger import get_logger
-
-    logger = get_logger("droid_dataset", "outputs/droid_dataset.log")
-    droid = DroidDataset(logger)
-    droid.prepare()
+    dataset = DroidDataset()
+    dataset.prepare()
 
 
 if __name__ == "__main__":

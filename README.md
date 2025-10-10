@@ -9,8 +9,9 @@
 ### Commands
 
 ```bash
-# Prepare Droid Dataset
-python -m src.dataset_processing.droid_dataset
+# Prepare all datasets
+python -m src.dataset_processing.datasets.droid_dataset
+python -m src.dataset_processing.datasets.aig_dataset
 python -m src.dataset_processing.dataset_tokenizer
 
 # Train model

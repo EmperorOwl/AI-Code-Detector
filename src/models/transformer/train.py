@@ -7,7 +7,7 @@ from src.dataset_processing.dataset_tokenizer import DatasetTokenizer
 from src.models.transformer import CodeBertModel, UniXcoderModel
 from src.models.transformer.transformer_model import TransformerModel
 from src.utils.logger import get_logger
-from src.utils.config import TRAINING_DIR, CONFIG, TEST_CONFIG
+from src.utils.config import TRAINING_DIR, CONFIG, TEST_CONFIG, DATASET_DIR
 
 
 def train_model(model_class: type[TransformerModel],
@@ -31,7 +31,7 @@ def train_model(model_class: type[TransformerModel],
 
     # Load and sample datasets
     helper = DatasetHelper(logger)
-    df = helper.load_dataset_from_csv('dataset.csv')
+    df = helper.load_dataset_from_csv(f'{DATASET_DIR}/droid_dataset.csv')
     df = helper.sample_dataset(df, sampling_requirements)
 
     # Tokenize dataset

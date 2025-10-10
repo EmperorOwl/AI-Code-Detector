@@ -1,6 +1,7 @@
 SAVE_DIR = 'saved_models'
 OUTPUT_DIR = 'outputs'
 TRAINING_DIR = OUTPUT_DIR + '/training'
+DATASET_DIR = OUTPUT_DIR + '/dataset_processing'
 
 
 TEST_CONFIG = {

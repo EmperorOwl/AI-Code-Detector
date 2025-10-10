@@ -6,7 +6,7 @@ from src.dataset_processing.dataset_tokenizer import DatasetTokenizer
 from src.models.transformer.transformer_model import TransformerModel
 from src.utils.analysis import save_predictions
 from src.utils.logger import get_logger
-from src.utils.config import OUTPUT_DIR
+from src.utils.config import OUTPUT_DIR, DATASET_DIR
 
 
 def run_trial(trial_name: str,
@@ -35,7 +35,7 @@ def run_trial(trial_name: str,
 
     # Load and sample datasets
     helper = DatasetHelper(logger)
-    df = helper.load_dataset_from_csv('dataset.csv')
+    df = helper.load_dataset_from_csv(f'{DATASET_DIR}/droid_dataset.csv')
     df = helper.sample_dataset(df, sampling_requirements)
 
     # Tokenize dataset

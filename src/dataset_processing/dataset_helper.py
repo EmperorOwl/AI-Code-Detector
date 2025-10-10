@@ -2,6 +2,7 @@ import random
 from logging import Logger
 
 import pandas as pd
+from datasets import load_dataset
 
 
 class DatasetHelper:
@@ -14,6 +15,28 @@ class DatasetHelper:
             logger (Logger): Logger instance for all operations
         """
         self.logger = logger
+
+    def load_dataset_from_huggingface(
+        self,
+        dataset_name: str,
+        splits: list[str]
+    ) -> pd.DataFrame:
+        """
+        Load dataset from Hugging Face.
+
+        Args:
+            dataset_name (str): Name of the dataset to load
+            splits (list[str]): List of splits to load
+
+        Returns:
+            pd.DataFrame: Loaded dataset
+        """
+        self.logger.info(f"Loading dataset from Hugging Face...")
+        datasets = load_dataset(dataset_name, split=splits)
+        df = pd.concat(dataset.to_pandas()  # type: ignore
+                       for dataset in datasets)
+        self.logger.info(f"✓ Loaded {dataset_name} dataset\n")
+        return df
 
     def load_dataset_from_csv(self,
                               file_path: str = 'dataset.csv') -> pd.DataFrame:
@@ -49,7 +72,7 @@ class DatasetHelper:
         """
         self.logger.info(f"Saving dataset...")
         df.to_csv(file_path, index=False)
-        self.logger.info(f"✓ Dataset saved as '{file_path}'\n")
+        self.logger.info(f"✓ Dataset saved to '{file_path}'\n")
 
     def split_dataset(self,
                       df: pd.DataFrame,

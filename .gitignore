@@ -15,6 +15,3 @@ saved_models/
 
 # VSCode
 .vscode
-
-# Dataset
-dataset.csv
