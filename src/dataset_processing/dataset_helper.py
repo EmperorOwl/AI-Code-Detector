@@ -295,3 +295,45 @@ class DatasetHelper:
         """
         df.insert(0, 'ID', range(len(df)))
         return df
+
+    def add_line_count_column(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add a Line_Count column at index 2 that counts lines in the Code column.
+
+        Args:
+            df (pd.DataFrame): Dataset to add Line_Count column to
+
+        Returns:
+            pd.DataFrame: Dataset with Line_Count column added
+        """
+        if 'Code' not in df.columns:
+            raise ValueError("DataFrame must contain a 'Code' column")
+
+        # Count lines in each code sample (split by newlines and count)
+        line_counts = df['Code'].apply(lambda x: len(str(x).splitlines()))
+        df.insert(2, 'Line_Count', line_counts)
+        return df
+
+    def analyse_line_count(self, df: pd.DataFrame) -> None:
+        """
+        Analyze and log statistics for the Line_Count column.
+
+        Args:
+            df (pd.DataFrame): Dataset with Line_Count column to analyze
+        """
+        if 'Line_Count' not in df.columns:
+            raise ValueError("DataFrame must contain a 'Line_Count' column")
+
+        line_counts = df['Line_Count']
+
+        min_lines = line_counts.min()
+        max_lines = line_counts.max()
+        avg_lines = line_counts.mean()
+        median_lines = line_counts.median()
+
+        self.logger.info("Analyzing line count...")
+        self.logger.info(f"  Minimum lines: {min_lines:,}")
+        self.logger.info(f"  Maximum lines: {max_lines:,}")
+        self.logger.info(f"  Average lines: {avg_lines:.2f}")
+        self.logger.info(f"  Median lines:  {median_lines:.1f}")
+        self.logger.info("")

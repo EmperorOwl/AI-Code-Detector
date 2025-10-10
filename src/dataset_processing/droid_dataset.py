@@ -61,6 +61,10 @@ class DroidDataset:
         for language in sorted(df['Language'].unique()):
             self.logger.info(f"  - {language}")
 
+        self.logger.info(f"\nSources available:")
+        for source in sorted(df['Source'].unique()):
+            self.logger.info(f"  - {source}")
+
         self.logger.info(f"\nLabels available:")
         for label in sorted(df['Label'].unique()):
             self.logger.info(f"  - {label}")
@@ -237,7 +241,8 @@ class DroidDataset:
         4. Sample according to requirements
         5. Analyze the sampled dataset
         6. Add ID column
-        7. Save to CSV
+        7. Add Line_Count column
+        8. Save to CSV
         """
         start_time = time.time()
 
@@ -260,10 +265,14 @@ class DroidDataset:
         self.analyse(sampled_df)
 
         # Step 6: Add ID column
-        sampled_df = self.helper.add_id_column(sampled_df)
+        df = self.helper.add_id_column(sampled_df)
 
-        # Step 7: Save to CSV
-        self.helper.save_dataset_to_csv(sampled_df)
+        # Step 7: Add Line_Count column
+        df = self.helper.add_line_count_column(df)
+        self.helper.analyse_line_count(df)
+
+        # Step 8: Save to CSV
+        self.helper.save_dataset_to_csv(df)
 
         # Calculate and print runtime
         end_time = time.time()
