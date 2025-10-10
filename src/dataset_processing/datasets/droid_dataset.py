@@ -97,7 +97,7 @@ class DroidDataset(AbstractDataset):
         # Create standardized dataframe
         df = df.reset_index(drop=True)
         standardized_df = pd.DataFrame()
-        standardized_df['Dataset'] = ['DroidCollection'] * len(df)
+        standardized_df['Dataset'] = ['Droid'] * len(df)
         standardized_df['Code'] = df['Code']
         standardized_df['Language'] = df['Language']
         standardized_df['Model'] = df['Model_Family'].map({

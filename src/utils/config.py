@@ -3,21 +3,23 @@ OUTPUT_DIR = 'outputs'
 TRAINING_DIR = OUTPUT_DIR + '/training'
 DATASET_DIR = OUTPUT_DIR + '/dataset_processing'
 
-
-TEST_CONFIG = {
-    'NUM_TRAIN_EPOCHS': 1,
-    'TRAIN_BATCH_SIZE': 8,
-    'EVAL_BATCH_SIZE': 8,
-    'SAMPLING_REQUIREMENTS': {
-        ('Java', 'GPT-4o'): 100,
-        ('Java', 'Human'): 100,
-    }
-}
+DROID_DATASET_PATH = DATASET_DIR + '/droid_dataset.csv'
+AIG_DATASET_PATH = DATASET_DIR + '/aig_dataset.csv'
 
 
 CONFIG = {
-    'NUM_TRAIN_EPOCHS': 10,
-    'TRAIN_BATCH_SIZE': 32,
-    'EVAL_BATCH_SIZE': 32,
-    'SAMPLING_REQUIREMENTS': None
+    'dev': {
+        'NUM_TRAIN_EPOCHS': 1,
+        'TRAIN_BATCH_SIZE': 8,
+        'EVAL_BATCH_SIZE': 8,
+        'SAMPLING_REQUIREMENTS': {
+            ('Java', 'GPT-4o'): 100,
+            ('Java', 'Human'): 100,
+        }
+    },
+    'prod': {
+        'NUM_TRAIN_EPOCHS': 10,
+        'TRAIN_BATCH_SIZE': 32,
+        'EVAL_BATCH_SIZE': 32,
+    }
 }

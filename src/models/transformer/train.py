@@ -7,7 +7,7 @@ from src.dataset_processing.dataset_tokenizer import DatasetTokenizer
 from src.models.transformer import CodeBertModel, UniXcoderModel
 from src.models.transformer.transformer_model import TransformerModel
 from src.utils.logger import get_logger
-from src.utils.config import TRAINING_DIR, CONFIG, TEST_CONFIG, DATASET_DIR
+from src.utils.config import TRAINING_DIR, CONFIG, DATASET_DIR
 
 
 def train_model(model_class: type[TransformerModel],
@@ -47,11 +47,7 @@ def train_model(model_class: type[TransformerModel],
     model = model_class(logger)
 
     # Train model
-    model.train(train_df,
-                val_df=val_df,
-                num_train_epochs=num_train_epochs,
-                batch_size=batch_size
-                )
+    model.train(train_df, val_df, num_train_epochs, batch_size)
 
     # Save model
     model.save(dir_name=model_name)
@@ -96,7 +92,7 @@ def main():
     model_class = model_classes[args.model]
 
     # Select configuration based on --test flag
-    config = TEST_CONFIG if args.test else CONFIG
+    config = CONFIG['prod'] if not args.test else CONFIG['dev']
 
     # Train the model
     train_model(

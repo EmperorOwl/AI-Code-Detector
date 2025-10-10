@@ -56,7 +56,7 @@ class AIGDataset(AbstractDataset):
         # Create standardized dataframe
         df = df.reset_index(drop=True)
         standardized_df = pd.DataFrame()
-        standardized_df['Dataset'] = ['AIGCodeSet'] * len(df)
+        standardized_df['Dataset'] = ['AIG'] * len(df)
         standardized_df['Code'] = df['code']
         standardized_df['Language'] = 'Python'
         standardized_df['Model'] = df['LLM'].map({

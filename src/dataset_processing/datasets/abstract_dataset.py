@@ -106,13 +106,16 @@ class AbstractDataset(ABC):
         self.analyse(standardized_df)
 
         # Step 6: Sample the dataset
-        df = self.helper.sample_dataset(
+        sampled_df = self.helper.sample_dataset(
             standardized_df,
             self.SAMPLING_REQUIREMENTS
         )
 
         # Step 7: Analyze sampled dataset
-        self.analyse(df)
+        self.analyse(sampled_df)
+
+        # Step 8: Add ID column
+        df = self.helper.add_id_column(sampled_df)
 
         # Step 9: Add Line_Count column
         df = self.helper.add_line_count_column(df)

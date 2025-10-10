@@ -182,15 +182,19 @@ class DatasetHelper:
         )
         self.logger.info("-" * 80)
 
-        # Get all unique combinations of language and model
-        combinations = df[['Language', 'Model']].drop_duplicates()
+        # Get all unique combinations of dataset, language and model
+        combinations = df[['Dataset', 'Language', 'Model']].drop_duplicates()
 
         # Calculate statistics for each combination
         for _, row in combinations.iterrows():
-            language, model = row['Language'], row['Model']
+            dataset = row['Dataset']
+            language = row['Language']
+            model = row['Model']
 
             # Filter samples for this combination
-            combo_mask = (df['Language'] == language) & (df['Model'] == model)
+            combo_mask = ((df['Dataset'] == dataset) &
+                          (df['Language'] == language) &
+                          (df['Model'] == model))
             total_count = combo_mask.sum()
 
             # Calculate train/val/test counts if splits provided
@@ -199,18 +203,21 @@ class DatasetHelper:
             test_count = 0
 
             if train_df is not None:
-                train_mask = (train_df['Language'] == language) & (
-                    train_df['Model'] == model)
+                train_mask = ((train_df['Dataset'] == dataset) &
+                              (train_df['Language'] == language) &
+                              (train_df['Model'] == model))
                 train_count = train_mask.sum()
 
             if val_df is not None:
-                val_mask = (val_df['Language'] == language) & (
-                    val_df['Model'] == model)
+                val_mask = ((val_df['Dataset'] == dataset) &
+                            (val_df['Language'] == language) &
+                            (val_df['Model'] == model))
                 val_count = val_mask.sum()
 
             if test_df is not None:
-                test_mask = (test_df['Language'] == language) & (
-                    test_df['Model'] == model)
+                test_mask = ((test_df['Dataset'] == dataset) &
+                             (test_df['Language'] == language) &
+                             (test_df['Model'] == model))
                 test_count = test_mask.sum()
 
             # Format counts (show "-" if no split provided)
@@ -219,10 +226,10 @@ class DatasetHelper:
             test_str = f"{test_count:,}" if test_df is not None else "-"
 
             # Print row
-            name = "Droid"
             self.logger.info(
-                f"{name:<10} | {language:<8} | {model:<12} | {total_count:<8,} | "
-                f"{train_str:<8} | {val_str:<8} | {test_str:<8}"
+                f"{dataset:<10} | {language:<8} | {model:<12} | "
+                f"{total_count:<8,} | {train_str:<8} | {val_str:<8} | "
+                f"{test_str:<8}"
             )
 
         # Print totals row

@@ -1,18 +1,73 @@
 import time
 import os
+from logging import Logger
+from typing import Literal
+
+import pandas as pd
 
 from src.dataset_processing.dataset_helper import DatasetHelper
 from src.dataset_processing.dataset_tokenizer import DatasetTokenizer
 from src.models.transformer.transformer_model import TransformerModel
 from src.utils.analysis import save_predictions
 from src.utils.logger import get_logger
-from src.utils.config import OUTPUT_DIR, DATASET_DIR
+from src.utils.config import (OUTPUT_DIR,
+                              CONFIG,
+                              DROID_DATASET_PATH,
+                              AIG_DATASET_PATH)
+
+
+def get_test_dataset(
+    logger: Logger,
+    model_class: type[TransformerModel],
+    trial_name: str,
+    is_test_run: bool = False
+) -> pd.DataFrame:
+
+    helper = DatasetHelper(logger)
+    tokenizer = DatasetTokenizer(logger, model_class)
+
+    if trial_name == 'same_sources':
+        df = helper.load_dataset_from_csv(DROID_DATASET_PATH)
+
+        if is_test_run:
+            df = helper.sample_dataset(df,
+                                       CONFIG['dev']['SAMPLING_REQUIREMENTS'])
+
+        train_df, val_df, test_df = helper.split_dataset(df)
+        helper.log_dataset_splits_table(df, train_df, val_df, test_df)
+
+    elif trial_name == 'independent_sources':
+        droid_df = helper.load_dataset_from_csv(DROID_DATASET_PATH)
+        aig_df = helper.load_dataset_from_csv(AIG_DATASET_PATH)
+
+        if is_test_run:
+            droid_df = helper.sample_dataset(
+                droid_df,
+                CONFIG['dev']['SAMPLING_REQUIREMENTS']
+            )
+            aig_df = helper.sample_dataset(aig_df, {
+                ('Python', 'Gemini Flash'): 10,
+                ('Python', 'Human'): 10,
+            })
+
+        df = pd.concat([droid_df, aig_df])
+
+        train_df, val_df, _ = helper.split_dataset(droid_df)
+        test_df = aig_df
+        helper.log_dataset_splits_table(df, train_df, val_df, test_df)
+
+    else:
+        raise ValueError(f"Invalid trial name: {trial_name}")
+
+    test_df = tokenizer.tokenize_code_samples(test_df)
+    tokenizer.analyze_tokenization(test_df)
+
+    return test_df
 
 
 def run_trial(trial_name: str,
               model_class: type[TransformerModel],
-              sampling_requirements: dict,
-              eval_batch_size: int) -> None:
+              mode: Literal['dev', 'prod'] = 'prod') -> None:
     model_name = model_class.MODEL_NAME
 
     # Start timer
@@ -33,28 +88,21 @@ def run_trial(trial_name: str,
     )
     logger.info(f"Log: {log_file_path}\n")
 
-    # Load and sample datasets
-    helper = DatasetHelper(logger)
-    df = helper.load_dataset_from_csv(f'{DATASET_DIR}/droid_dataset.csv')
-    df = helper.sample_dataset(df, sampling_requirements)
-
-    # Tokenize dataset
-    tokenizer = DatasetTokenizer(logger, model_class)
-    df = tokenizer.tokenize_code_samples(df)
-    tokenizer.analyze_tokenization(df)
-
-    # Split dataset
-    train_df, val_df, test_df = helper.split_dataset(df)
-    helper.log_dataset_splits_table(df, train_df, val_df, test_df)
+    # Get test dataset for this trial
+    test_df = get_test_dataset(
+        logger,
+        model_class,
+        trial_name,
+        is_test_run=mode == 'dev'
+    )
 
     # Load saved model
     loaded_model = model_class(logger,
                                load_from_saved_path=model_name.lower())
 
-    # Test model
     output_df = loaded_model.predict(
         test_df=test_df,
-        batch_size=eval_batch_size
+        batch_size=CONFIG[mode]['EVAL_BATCH_SIZE']
     )
 
     # Save predictions
