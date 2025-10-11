@@ -114,8 +114,11 @@ class AbstractDataset(ABC):
         # Step 7: Analyze sampled dataset
         self.analyse(sampled_df)
 
-        # Step 8: Save the dataset
-        self.save(sampled_df)
+        # Step 8: Add ID column
+        df = self.helper.add_id_column(sampled_df)
+
+        # Step 9: Save the dataset
+        self.save(df)
 
         # Calculate and print runtime
         end_time = time.time()
@@ -123,7 +126,7 @@ class AbstractDataset(ABC):
         self.logger.info(f"Runtime: {seconds:.2f} seconds "
                          f"({seconds / 60:.2f} minutes)")
 
-        return sampled_df
+        return df
 
     def get_save_filepath(self) -> str:
         """

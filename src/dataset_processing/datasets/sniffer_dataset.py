@@ -70,11 +70,10 @@ class SnifferDataset(AbstractDataset):
 
     def standardize(self, df: pd.DataFrame) -> pd.DataFrame:
         self.logger.info("Standardizing dataset...")
-        self.helper.add_id_column(df)
-        df = df[['ID', 'Dataset', 'Code', 'Line_Count',
+        df = df[['Dataset', 'Code', 'Line_Count',
                  'Language', 'Model', 'Label']]
         self.logger.info(
-            f"✓ Dataset standardized with columns "
+            f"✓ Columns standardized: "
             f"{', '.join(df.columns.tolist())}"
             f"\n"
         )

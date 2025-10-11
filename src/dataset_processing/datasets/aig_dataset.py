@@ -73,10 +73,8 @@ class AIGDataset(AbstractDataset):
         })  # Standardize model names
         standardized_df['Label'] = df['label']
 
-        self.helper.add_id_column(standardized_df)
-
         self.logger.info(
-            f"✓ Dataset standardized with columns "
+            f"✓ Columns standardized: "
             f"{', '.join(standardized_df.columns.tolist())}"
         )
         self.logger.info("")

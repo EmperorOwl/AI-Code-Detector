@@ -115,10 +115,8 @@ class DroidDataset(AbstractDataset):
             df['Label'] == 'MACHINE_GENERATED'
         ).astype(int)  # Standardize Label column (0 for human, 1 for AI)
 
-        self.helper.add_id_column(standardized_df)
-
         self.logger.info(
-            f"✓ Dataset standardized with columns "
+            f"✓ Columns standardized: "
             f"{', '.join(standardized_df.columns.tolist())}\n"
         )
         return standardized_df
