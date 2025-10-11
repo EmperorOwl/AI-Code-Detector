@@ -1,0 +1,70 @@
+Timestamp: 09/10/2025 07:51 AM
+Log: outputs/training/codebert.log
+
+Loading dataset...
+✓ Loaded 50,000 samples
+
+Dataset columns:
+  - ID
+  - Code
+  - Language
+  - Model
+  - Label
+
+Setting up tokenizer...
+✓ Tokenizer for model microsoft/codebert-base loaded
+
+Configuration:
+  - Max length: 512/512
+  - Vocab size: 50,265
+
+Special tokens:
+  - bos_token: <s>
+  - eos_token: </s>
+  - unk_token: <unk>
+  - sep_token: </s>
+  - pad_token: <pad>
+  - cls_token: <s>
+  - mask_token: <mask>
+
+Tokenizing code samples...
+✓ 50,000 samples tokenized
+
+Analyzing tokenization results...
+
+Token length statistics:
+  - Min length: 12
+  - Max length: 512
+  - Average length: 383.6
+  - Median length: 512
+
+Truncation statistics:
+  - Samples truncated: 25,946 (51.9%)
+  - Samples not truncated: 24,054 (48.1%)
+
+Splitting dataset...
+✓ Created train dataset with 40,000 samples (80.0%)
+✓ Created validation dataset with 5,000 samples (10.0%)
+✓ Created test dataset with 5,000 samples (10.0%)
+
+Dataset    | Language | Model        | Total    | Train    | Val      | Test    
+--------------------------------------------------------------------------------
+Droid      | Java     | Human        | 12,500   | 10,000   | 1,250    | -       
+Droid      | Java     | GPT-4o       | 4,000    | 3,200    | 400      | -       
+Droid      | Java     | GPT-4o mini  | 7,000    | 5,600    | 700      | -       
+Droid      | Java     | DeepSeek     | 1,500    | 1,200    | 150      | -       
+Droid      | Python   | Human        | 12,500   | 10,000   | 1,250    | -       
+Droid      | Python   | GPT-4o       | 4,000    | 3,200    | 400      | -       
+Droid      | Python   | GPT-4o mini  | 7,000    | 5,600    | 700      | -       
+Droid      | Python   | DeepSeek     | 1,500    | 1,200    | 150      | -       
+--------------------------------------------------------------------------------
+TOTAL                                | 50,000   | 40,000   | 5,000    | -       
+
+New CodeBERT model initialized (device: cuda)
+
+Training CodeBERT model (epochs: 10, batch_size: 32)
+
+CodeBERT model saved to saved_models/codebert
+
+Runtime: 1239.29 seconds (20.65 minutes)
+
