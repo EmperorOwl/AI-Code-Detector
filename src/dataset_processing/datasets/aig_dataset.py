@@ -46,6 +46,13 @@ class AIGDataset(AbstractDataset):
             f"✓ Samples after model filtering "
             f"(Human/GEMINI): {len(filtered_df):,}"
         )
+
+        # Filter line count
+        filtered_df = self.helper.add_line_count_column(
+            filtered_df,
+            code_column='code'
+        )
+        filtered_df = self.helper.filter_line_count(filtered_df)
         self.logger.info("")
 
         return filtered_df
@@ -58,12 +65,15 @@ class AIGDataset(AbstractDataset):
         standardized_df = pd.DataFrame()
         standardized_df['Dataset'] = ['AIG'] * len(df)
         standardized_df['Code'] = df['code']
+        standardized_df['Line_Count'] = df['Line_Count']
         standardized_df['Language'] = 'Python'
         standardized_df['Model'] = df['LLM'].map({
             'Human': 'Human',
             'GEMINI': 'Gemini Flash'
         })  # Standardize model names
         standardized_df['Label'] = df['label']
+
+        self.helper.add_id_column(standardized_df)
 
         self.logger.info(
             f"✓ Dataset standardized with columns "
@@ -92,6 +102,8 @@ class AIGDataset(AbstractDataset):
                          f"{gemini_count:<15,} {total_count:<10,}")
         self.logger.info("-" * 50)
         self.logger.info("")
+
+        self.helper.analyse_line_count(df)
 
 
 def main():

@@ -114,17 +114,8 @@ class AbstractDataset(ABC):
         # Step 7: Analyze sampled dataset
         self.analyse(sampled_df)
 
-        # Step 8: Add ID column
-        df = self.helper.add_id_column(sampled_df)
-
-        # Step 9: Add Line_Count column
-        df = self.helper.add_line_count_column(df)
-
-        # Step 10: Analyze line counts
-        self.helper.analyse_line_count(df)
-
-        # Step 11: Save the dataset
-        self.save(df)
+        # Step 8: Save the dataset
+        self.save(sampled_df)
 
         # Calculate and print runtime
         end_time = time.time()
@@ -132,7 +123,7 @@ class AbstractDataset(ABC):
         self.logger.info(f"Runtime: {seconds:.2f} seconds "
                          f"({seconds / 60:.2f} minutes)")
 
-        return df
+        return sampled_df
 
     def get_save_filepath(self) -> str:
         """

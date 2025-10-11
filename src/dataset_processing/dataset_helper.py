@@ -326,22 +326,23 @@ class DatasetHelper:
         df.insert(0, 'ID', range(len(df)))
         return df
 
-    def add_line_count_column(self, df: pd.DataFrame) -> pd.DataFrame:
+    def add_line_count_column(self,
+                              df: pd.DataFrame,
+                              code_column: str = 'Code') -> pd.DataFrame:
         """
-        Add a Line_Count column at index 2 that counts lines in the Code column.
+        Add a Line_Count column
 
         Args:
             df (pd.DataFrame): Dataset to add Line_Count column to
+            code_column (str): Column to count lines in
 
         Returns:
             pd.DataFrame: Dataset with Line_Count column added
         """
-        if 'Code' not in df.columns:
-            raise ValueError("DataFrame must contain a 'Code' column")
-
+        df = df.copy()
         # Count lines in each code sample (split by newlines and count)
-        line_counts = df['Code'].apply(lambda x: len(str(x).splitlines()))
-        df.insert(2, 'Line_Count', line_counts)
+        line_counts = df[code_column].apply(lambda x: len(str(x).splitlines()))
+        df['Line_Count'] = line_counts
         return df
 
     def analyse_line_count(self, df: pd.DataFrame) -> None:
@@ -365,5 +366,17 @@ class DatasetHelper:
         self.logger.info(f"  Minimum lines: {min_lines:,}")
         self.logger.info(f"  Maximum lines: {max_lines:,}")
         self.logger.info(f"  Average lines: {avg_lines:.2f}")
-        self.logger.info(f"  Median lines:  {median_lines:.1f}")
-        self.logger.info("")
+        self.logger.info(f"  Median lines:  {median_lines:.1f}\n")
+
+    def filter_line_count(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Filter the dataset for line count requirements.
+
+        Args:
+            df (pd.DataFrame): Dataset to filter
+        """
+        filtered_df = df[(df['Line_Count'] >= 5) & (df['Line_Count'] <= 500)]
+        self.logger.info(
+            f"✓ Samples after line count filtering: {len(filtered_df):,}"
+        )
+        return filtered_df

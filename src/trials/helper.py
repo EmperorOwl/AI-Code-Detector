@@ -12,8 +12,7 @@ from src.utils.analysis import save_predictions
 from src.utils.logger import get_logger
 from src.utils.config import (OUTPUT_DIR,
                               CONFIG,
-                              DROID_DATASET_PATH,
-                              AIG_DATASET_PATH)
+                              DatasetPaths)
 
 
 def get_test_dataset(
@@ -27,7 +26,7 @@ def get_test_dataset(
     tokenizer = DatasetTokenizer(logger, model_class)
 
     if trial_name == 'same_sources':
-        df = helper.load_dataset_from_csv(DROID_DATASET_PATH)
+        df = helper.load_dataset_from_csv(DatasetPaths.DROID)
 
         if is_test_run:
             df = helper.sample_dataset(df,
@@ -37,8 +36,9 @@ def get_test_dataset(
         helper.log_dataset_splits_table(df, train_df, val_df, test_df)
 
     elif trial_name == 'independent_sources':
-        droid_df = helper.load_dataset_from_csv(DROID_DATASET_PATH)
-        aig_df = helper.load_dataset_from_csv(AIG_DATASET_PATH)
+        droid_df = helper.load_dataset_from_csv(DatasetPaths.DROID)
+        aig_df = helper.load_dataset_from_csv(DatasetPaths.AIG)
+        sniffer_df = helper.load_dataset_from_csv(DatasetPaths.SNIFFER)
 
         if is_test_run:
             droid_df = helper.sample_dataset(
@@ -49,11 +49,15 @@ def get_test_dataset(
                 ('Python', 'Gemini Flash'): 10,
                 ('Python', 'Human'): 10,
             })
+            sniffer_df = helper.sample_dataset(sniffer_df, {
+                ('Java', 'ChatGPT'): 10,
+                ('Java', 'Human'): 10,
+            })
 
-        df = pd.concat([droid_df, aig_df])
+        df = pd.concat([droid_df, aig_df, sniffer_df], ignore_index=True)
 
         train_df, val_df, _ = helper.split_dataset(droid_df)
-        test_df = aig_df
+        test_df = pd.concat([aig_df, sniffer_df], ignore_index=True)
         helper.log_dataset_splits_table(df, train_df, val_df, test_df)
 
     else:

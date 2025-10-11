@@ -97,8 +97,6 @@ class DatasetTokenizer:
         Args:
             df (pd.DataFrame): Tokenized dataset to analyze
         """
-        self.logger.info("Analyzing tokenization results...")
-
         # Convert input_ids to numpy array for vectorized operations
         input_ids_array = np.array(df['input_ids'].tolist())
 
@@ -131,8 +129,7 @@ class DatasetTokenizer:
         self.logger.info(f"  - Samples truncated: {truncated_count:,} "
                          f"({truncated_percentage:.1f}%)")
         self.logger.info(f"  - Samples not truncated: {not_truncated_count:,} "
-                         f"({not_truncated_percentage:.1f}%)")
-        self.logger.info("")
+                         f"({not_truncated_percentage:.1f}%)\n")
 
 
 def main():

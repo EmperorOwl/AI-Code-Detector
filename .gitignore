@@ -4,6 +4,7 @@ __pycache__/
 .venv/
 
 # Data, outputs, results, and saved models
+datasets/
 outputs/
 results/
 saved_models/

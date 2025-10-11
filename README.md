@@ -9,7 +9,13 @@
 ### Commands
 
 ```bash
+# Prepare all datasets
+python -m src.dataset_processing.prepare_all
 
+# Prepare individual datasets
+python -m src.dataset_processing.datasets.aig_dataset
+python -m src.dataset_processing.datasets.droid_dataset
+python -m src.dataset_processing.datasets.sniffer_dataset
 ```
 
 ### Enable GPU

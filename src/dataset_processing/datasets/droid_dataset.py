@@ -57,7 +57,7 @@ class DroidDataset(AbstractDataset):
         return
 
     def filter(self, df: pd.DataFrame) -> pd.DataFrame:
-        self.logger.info("Filtering DroidCollection dataset...")
+        self.logger.info("Filtering dataset...")
         self.logger.info(f"✓ Total samples in dataset: {len(df):,}")
 
         # Filter for specific languages
@@ -88,6 +88,10 @@ class DroidDataset(AbstractDataset):
             f"(HUMAN_GENERATED/MACHINE_GENERATED): {len(filtered_df):,}"
         )
 
+        # Filter line count
+        filtered_df = self.helper.add_line_count_column(filtered_df)
+        filtered_df = self.helper.filter_line_count(filtered_df)
+
         self.logger.info("")
         return filtered_df
 
@@ -99,6 +103,7 @@ class DroidDataset(AbstractDataset):
         standardized_df = pd.DataFrame()
         standardized_df['Dataset'] = ['Droid'] * len(df)
         standardized_df['Code'] = df['Code']
+        standardized_df['Line_Count'] = df['Line_Count']
         standardized_df['Language'] = df['Language']
         standardized_df['Model'] = df['Model_Family'].map({
             'gpt-4o': 'GPT-4o',
@@ -110,11 +115,12 @@ class DroidDataset(AbstractDataset):
             df['Label'] == 'MACHINE_GENERATED'
         ).astype(int)  # Standardize Label column (0 for human, 1 for AI)
 
+        self.helper.add_id_column(standardized_df)
+
         self.logger.info(
             f"✓ Dataset standardized with columns "
-            f"{', '.join(standardized_df.columns.tolist())}"
+            f"{', '.join(standardized_df.columns.tolist())}\n"
         )
-        self.logger.info("")
         return standardized_df
 
     def analyse(self, df: pd.DataFrame) -> None:
@@ -191,6 +197,8 @@ class DroidDataset(AbstractDataset):
 
         self.logger.info("-" * 80)
         self.logger.info("")
+
+        self.helper.analyse_line_count(df)
 
 
 def main():

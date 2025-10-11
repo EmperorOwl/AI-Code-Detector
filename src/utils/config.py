@@ -3,8 +3,11 @@ OUTPUT_DIR = 'outputs'
 TRAINING_DIR = OUTPUT_DIR + '/training'
 DATASET_DIR = OUTPUT_DIR + '/dataset_processing'
 
-DROID_DATASET_PATH = DATASET_DIR + '/droid_dataset.csv'
-AIG_DATASET_PATH = DATASET_DIR + '/aig_dataset.csv'
+
+class DatasetPaths:
+    DROID = DATASET_DIR + '/droid_dataset.csv'
+    AIG = DATASET_DIR + '/aig_dataset.csv'
+    SNIFFER = DATASET_DIR + '/sniffer_dataset.csv'
 
 
 CONFIG = {
