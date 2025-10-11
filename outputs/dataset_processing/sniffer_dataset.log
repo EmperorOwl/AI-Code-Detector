@@ -1,0 +1,44 @@
+Loading dataset from local directory...
+✓ Loaded GPTSniffer dataset
+
+Filtering GPTSniffer dataset...
+✓ Total samples in dataset: 1,482
+✓ Samples after line count filtering (5-500): 1,368
+
+Standardizing dataset...
+✓ Columns standardized: Dataset, Code, Line_Count, Language, Model, Label
+
+Language   Human      ChatGPT    Total     
+--------------------------------------------------
+Java       731        637        1,368     
+--------------------------------------------------
+TOTAL      731        637        1,368     
+--------------------------------------------------
+
+Analyzing line count...
+  Minimum lines: 5
+  Maximum lines: 486
+  Average lines: 53.54
+  Median lines:  40.0
+
+Sampling dataset...
+✓ Sampled 500/731 Java Human samples (68.4%)
+✓ Sampled 500/637 Java ChatGPT samples (78.5%)
+
+Language   Human      ChatGPT    Total     
+--------------------------------------------------
+Java       500        500        1,000     
+--------------------------------------------------
+TOTAL      500        500        1,000     
+--------------------------------------------------
+
+Analyzing line count...
+  Minimum lines: 5
+  Maximum lines: 391
+  Average lines: 52.07
+  Median lines:  40.0
+
+Saving dataset...
+✓ Dataset saved to 'outputs/dataset_processing/sniffer_dataset.csv'
+
+Runtime: 0.09 seconds (0.00 minutes)

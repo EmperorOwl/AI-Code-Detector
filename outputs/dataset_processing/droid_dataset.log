@@ -1,0 +1,161 @@
+Loading dataset from Hugging Face...
+✓ Loaded project-droid/DroidCollection dataset
+
+Dataset columns:
+  - Code
+  - Generator
+  - Generation_Mode
+  - Source
+  - Language
+  - Sampling_Params
+  - Rewriting_Params
+  - Label
+  - Model_Family
+
+Languages available:
+  - C
+  - C#
+  - C++
+  - Go
+  - Java
+  - JavaScript
+  - PHP
+  - Python
+  - Rust
+
+Sources available:
+  - ARXIV
+  - ATCODER
+  - CODEFORCES
+  - DROID_PERSONAHUB
+  - LEETCODE
+  - OBSCURA_CODER
+  - STARCODER_DATA
+  - TACO
+  - THEVAULT_CLASS
+  - THEVAULT_FUNCTION
+  - THEVAULT_INLINE
+
+Labels available:
+  - HUMAN_GENERATED
+  - MACHINE_GENERATED
+  - MACHINE_GENERATED_ADVERSARIAL
+  - MACHINE_REFINED
+
+Model families available:
+  - 01-ai
+  - bigcode
+  - codellama
+  - deepseek-ai
+  - google
+  - gpt-4o
+  - gpt-4o-mini
+  - human
+  - ibm-granite
+  - meta-llama
+  - microsoft
+  - mistralai
+  - qwen
+
+Generators available:
+  - 01-ai/Yi-Coder-1.5B
+  - 01-ai/Yi-Coder-1.5B-Chat
+  - 01-ai/Yi-Coder-9B
+  - 01-ai/Yi-Coder-9B-Chat
+  - GPT-4o
+  - GPT-4o-mini
+  - Human
+  - Qwen/Qwen2.5-72B-Instruct
+  - Qwen/Qwen2.5-Codder-14B-Instruct
+  - Qwen/Qwen2.5-Coder-1.5B
+  - Qwen/Qwen2.5-Coder-1.5B-Instruct
+  - Qwen/Qwen2.5-Coder-32B-Instruct
+  - Qwen/Qwen2.5-Coder-7B
+  - Qwen/Qwen2.5-Coder-7B-Instruct
+  - bigcode/starcoder
+  - bigcode/starcoder2-15b
+  - bigcode/starcoder2-3b
+  - bigcode/starcoder2-7b
+  - codellama/CodeLlama-34b-Instruct-hf
+  - codellama/CodeLlama-70b-Instruct-hf
+  - codellama/CodeLlama-7b-hf
+  - deepseek-ai/deepseek-coder-1.3b-base
+  - deepseek-ai/deepseek-coder-1.3b-instruct
+  - deepseek-ai/deepseek-coder-6.7b-base
+  - deepseek-ai/deepseek-coder-6.7b-instruct
+  - google/codegemma-2b
+  - google/codegemma-7b
+  - google/codegemma-7b-it
+  - ibm-granite/granite-34b-code-instruct-8k
+  - ibm-granite/granite-8b-code-base-4k
+  - ibm-granite/granite-8b-code-instruct-4k
+  - meta-llama/Llama-3.1-8B
+  - meta-llama/Llama-3.1-8B-Instruct
+  - meta-llama/Llama-3.2-1B
+  - meta-llama/Llama-3.2-3B
+  - meta-llama/Llama-3.3-70B-Instruct
+  - meta-llama/Llama-3.3-70B-Instruct-Turbo
+  - meta-llama/Meta-Llama-3.1-70B-Instruct
+  - meta-llama/Meta-Llama-3.1-8B-Instruct
+  - microsoft/Phi-3-medium-4k-instruct
+  - microsoft/Phi-3-mini-4k-instruct
+  - microsoft/Phi-3-small-8k-instruct
+  - microsoft/Phi-3.5-mini-instruct
+  - microsoft/phi-2
+  - microsoft/phi-4
+  - mistralai/Mistral-Small-24B-Instruct-2501
+
+Filtering dataset...
+✓ Total samples in dataset: 1,058,248
+✓ Samples after language filtering (Python/Java): 600,185
+✓ Samples after model filtering (Human/GPT-4o/GPT-4o mini/DeepSeek): 379,200
+✓ Samples after label filtering (HUMAN_GENERATED/MACHINE_GENERATED): 349,006
+✓ Samples after line count filtering (5-500): 346,619
+
+Standardizing dataset...
+✓ Columns standardized: Dataset, Code, Line_Count, Language, Model, Label
+
+Language   Human       GPT-4o     GPT-4o mini  DeepSeek   Total AI     Total     
+--------------------------------------------------------------------------------
+Java       135,049     5,452      20,978       1,740      28,170       163,219   
+Python     146,161     4,352      29,234       3,653      37,239       183,400   
+--------------------------------------------------------------------------------
+TOTAL      281,210     9,804      50,212       5,393      65,409       346,619   
+% of AI                15.0%      76.8%        8.2%                              
+--------------------------------------------------------------------------------
+
+Analyzing line count...
+  Minimum lines: 5
+  Maximum lines: 299
+  Average lines: 45.53
+  Median lines:  28.0
+
+Sampling dataset...
+✓ Sampled 12,500/135,049 Java Human samples (9.3%)
+✓ Sampled 4,000/5,452 Java GPT-4o samples (73.4%)
+✓ Sampled 7,000/20,978 Java GPT-4o mini samples (33.4%)
+✓ Sampled 1,500/1,740 Java DeepSeek samples (86.2%)
+✓ Sampled 12,500/146,161 Python Human samples (8.6%)
+✓ Sampled 4,000/4,352 Python GPT-4o samples (91.9%)
+✓ Sampled 7,000/29,234 Python GPT-4o mini samples (23.9%)
+✓ Sampled 1,500/3,653 Python DeepSeek samples (41.1%)
+
+Language   Human       GPT-4o     GPT-4o mini  DeepSeek   Total AI     Total     
+--------------------------------------------------------------------------------
+Java       12,500      4,000      7,000        1,500      12,500       25,000    
+Python     12,500      4,000      7,000        1,500      12,500       25,000    
+--------------------------------------------------------------------------------
+TOTAL      25,000      8,000      14,000       3,000      25,000       50,000    
+% of AI                32.0%      56.0%        12.0%                             
+--------------------------------------------------------------------------------
+
+Analyzing line count...
+  Minimum lines: 5
+  Maximum lines: 299
+  Average lines: 48.84
+  Median lines:  38.0
+
+Saving dataset...
+✓ Dataset saved to 'outputs/dataset_processing/droid_dataset.csv'
+
+Runtime: 66.38 seconds (1.11 minutes)

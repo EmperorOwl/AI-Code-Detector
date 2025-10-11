@@ -1,0 +1,48 @@
+Loading dataset from CSV files...
+✓ Loaded MBPP dataset
+
+Filtering dataset...
+✓ Total samples in dataset: 5,840
+✓ Samples after line count filtering (5-500): 3,587
+
+Standardizing dataset...
+✓ Columns standardized: Dataset, Code, Line_Count, Language, Model, Label
+
+Language   Human       ChatGPT    GPT-4      Gemini Pro   Total AI     Total     
+--------------------------------------------------------------------------------
+Python     1,727       690        491        679          1,860        3,587     
+--------------------------------------------------------------------------------
+TOTAL      1,727       690        491        679          1,860        3,587     
+% of AI                37.1%      26.4%      36.5%                               
+--------------------------------------------------------------------------------
+
+Analyzing line count...
+  Minimum lines: 5
+  Maximum lines: 94
+  Average lines: 9.98
+  Median lines:  8.0
+
+Sampling dataset...
+✓ Sampled 1,200/1,727 Python Human samples (69.5%)
+✓ Sampled 400/690 Python ChatGPT samples (58.0%)
+✓ Sampled 400/491 Python GPT-4 samples (81.5%)
+✓ Sampled 400/679 Python Gemini Pro samples (58.9%)
+
+Language   Human       ChatGPT    GPT-4      Gemini Pro   Total AI     Total     
+--------------------------------------------------------------------------------
+Python     1,200       400        400        400          1,200        2,400     
+--------------------------------------------------------------------------------
+TOTAL      1,200       400        400        400          1,200        2,400     
+% of AI                33.3%      33.3%      33.3%                               
+--------------------------------------------------------------------------------
+
+Analyzing line count...
+  Minimum lines: 5
+  Maximum lines: 50
+  Average lines: 9.86
+  Median lines:  8.0
+
+Saving dataset...
+✓ Dataset saved to 'outputs/dataset_processing/mbpp_dataset.csv'
+
+Runtime: 0.40 seconds (0.01 minutes)

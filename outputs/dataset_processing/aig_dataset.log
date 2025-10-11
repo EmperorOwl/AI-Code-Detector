@@ -1,0 +1,69 @@
+Loading dataset from Hugging Face...
+✓ Loaded basakdemirok/AIGCodeSet dataset
+
+Dataset columns:
+  - problem_id
+  - submission_id
+  - status_in_folder
+  - LLM
+  - code
+  - ada_embedding
+  - label
+  - lines
+  - code_lines
+  - comments
+  - functions
+  - blank_lines
+
+Models available:
+  - CODESTRAL
+  - GEMINI
+  - Human
+  - LLAMA
+
+Labels available:
+  - 0
+  - 1
+
+Filtering dataset...
+✓ Total samples in dataset: 15,166
+✓ Samples after model filtering (Human/GEMINI): 11,406
+✓ Samples after line count filtering (5-500): 10,504
+
+Standardizing dataset...
+✓ Columns standardized: Dataset, Code, Line_Count, Language, Model, Label
+
+Language   Human      Gemini Flash    Total     
+--------------------------------------------------
+Python     8,750      1,754           10,504    
+--------------------------------------------------
+TOTAL      8,750      1,754           10,504    
+--------------------------------------------------
+
+Analyzing line count...
+  Minimum lines: 5
+  Maximum lines: 456
+  Average lines: 23.52
+  Median lines:  17.0
+
+Sampling dataset...
+✓ Sampled 1,500/8,750 Python Human samples (17.1%)
+✓ Sampled 1,500/1,754 Python Gemini Flash samples (85.5%)
+
+Language   Human      Gemini Flash    Total     
+--------------------------------------------------
+Python     1,500      1,500           3,000     
+--------------------------------------------------
+TOTAL      1,500      1,500           3,000     
+--------------------------------------------------
+
+Analyzing line count...
+  Minimum lines: 5
+  Maximum lines: 361
+  Average lines: 22.06
+  Median lines:  16.0
+
+Saving dataset...
+✓ Dataset saved to 'outputs/dataset_processing/aig_dataset.csv'
+
+Runtime: 18.49 seconds (0.31 minutes)

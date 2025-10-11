@@ -1,0 +1,152 @@
+Log: outputs/independent_sources/unixcoder.log
+
+Setting up tokenizer...
+✓ Tokenizer for model microsoft/unixcoder-base loaded
+
+Configuration:
+  - Max length: 1024/1000000000000000019884624838656
+  - Vocab size: 51,416
+
+Special tokens:
+  - bos_token: <s>
+  - eos_token: </s>
+  - unk_token: <unk>
+  - sep_token: </s>
+  - pad_token: <pad>
+  - cls_token: <s>
+  - mask_token: <mask>
+
+Loading dataset...
+✓ Loaded 50,000 samples
+
+Dataset columns:
+  - ID
+  - Dataset
+  - Code
+  - Line_Count
+  - Language
+  - Model
+  - Label
+
+Loading dataset...
+✓ Loaded 3,000 samples
+
+Dataset columns:
+  - ID
+  - Dataset
+  - Code
+  - Line_Count
+  - Language
+  - Model
+  - Label
+
+Loading dataset...
+✓ Loaded 1,000 samples
+
+Dataset columns:
+  - ID
+  - Dataset
+  - Code
+  - Line_Count
+  - Language
+  - Model
+  - Label
+
+Loading dataset...
+✓ Loaded 1,500 samples
+
+Dataset columns:
+  - ID
+  - Dataset
+  - Code
+  - Line_Count
+  - Language
+  - Model
+  - Label
+
+Loading dataset...
+✓ Loaded 2,400 samples
+
+Dataset columns:
+  - ID
+  - Dataset
+  - Code
+  - Line_Count
+  - Language
+  - Model
+  - Label
+
+Splitting dataset...
+✓ Created train dataset with 40,000 samples (80.0%)
+✓ Created validation dataset with 5,000 samples (10.0%)
+✓ Created test dataset with 5,000 samples (10.0%)
+
+Dataset    | Language | Model        | Total    | Train    | Val      | Test    
+--------------------------------------------------------------------------------
+Droid      | Java     | Human        | 12,500   | 10,000   | 1,250    | 0       
+Droid      | Java     | GPT-4o       | 4,000    | 3,200    | 400      | 0       
+Droid      | Java     | GPT-4o mini  | 7,000    | 5,600    | 700      | 0       
+Droid      | Java     | DeepSeek     | 1,500    | 1,200    | 150      | 0       
+Droid      | Python   | Human        | 12,500   | 10,000   | 1,250    | 0       
+Droid      | Python   | GPT-4o       | 4,000    | 3,200    | 400      | 0       
+Droid      | Python   | GPT-4o mini  | 7,000    | 5,600    | 700      | 0       
+Droid      | Python   | DeepSeek     | 1,500    | 1,200    | 150      | 0       
+AIG        | Python   | Human        | 1,500    | 0        | 0        | 1,500   
+AIG        | Python   | Gemini Flash | 1,500    | 0        | 0        | 1,500   
+Sniffer    | Java     | Human        | 500      | 0        | 0        | 500     
+Sniffer    | Java     | ChatGPT      | 500      | 0        | 0        | 500     
+HumanEval  | Java     | Human        | 450      | 0        | 0        | 450     
+HumanEval  | Java     | ChatGPT      | 150      | 0        | 0        | 150     
+HumanEval  | Java     | GPT-4        | 150      | 0        | 0        | 150     
+HumanEval  | Java     | Gemini Pro   | 150      | 0        | 0        | 150     
+HumanEval  | Python   | Human        | 300      | 0        | 0        | 300     
+HumanEval  | Python   | ChatGPT      | 100      | 0        | 0        | 100     
+HumanEval  | Python   | GPT-4        | 100      | 0        | 0        | 100     
+HumanEval  | Python   | Gemini Pro   | 100      | 0        | 0        | 100     
+MBPP       | Python   | Human        | 1,200    | 0        | 0        | 1,200   
+MBPP       | Python   | ChatGPT      | 400      | 0        | 0        | 400     
+MBPP       | Python   | GPT-4        | 400      | 0        | 0        | 400     
+MBPP       | Python   | Gemini Pro   | 400      | 0        | 0        | 400     
+--------------------------------------------------------------------------------
+TOTAL                                | 57,900   | 40,000   | 5,000    | 7,900   
+
+Tokenizing code samples...
+✓ 7,900 samples tokenized
+
+
+Token length statistics:
+  - Min length: 27
+  - Max length: 1024
+  - Average length: 180.0
+  - Median length: 119
+
+Truncation statistics:
+  - Samples truncated: 95 (1.2%)
+  - Samples not truncated: 7,805 (98.8%)
+
+Existing UniXcoder model loaded from outputs/training/unixcoder (device: cuda)
+
+Evaluating UniXcoder model (batch_size: 32)
+
+              precision    recall  f1-score   support
+
+       Human       0.43      0.60      0.50      3950
+          AI       0.32      0.19      0.24      3950
+
+    accuracy                           0.40      7900
+   macro avg       0.37      0.40      0.37      7900
+weighted avg       0.37      0.40      0.37      7900
+
+              Predicted Human  Predicted AI
+Actual Human             2378          1572
+Actual AI                3201           749
+
+Accuracy: 39.58%
+Recall: 18.96%
+False Positive Rate: 39.80%
+False Negative Rate: 81.04%
+
+Predictions appended to outputs/independent_sources/predictions.csv
+
+Runtime: 49.42 seconds (0.82 minutes)
+

@@ -1,0 +1,54 @@
+Loading dataset from CSV files...
+✓ Loaded HumanEval dataset
+
+Filtering dataset...
+✓ Total samples in dataset: 1,958
+✓ Samples after line count filtering (5-500): 1,730
+
+Standardizing dataset...
+✓ Columns standardized: Dataset, Code, Line_Count, Language, Model, Label
+
+Language   Human       ChatGPT    GPT-4      Gemini Pro   Total AI     Total     
+--------------------------------------------------------------------------------
+Java       489         155        164        161          480          969       
+Python     353         140        110        158          408          761       
+--------------------------------------------------------------------------------
+TOTAL      842         295        274        319          888          1,730     
+% of AI                33.2%      30.9%      35.9%                               
+--------------------------------------------------------------------------------
+
+Analyzing line count...
+  Minimum lines: 5
+  Maximum lines: 99
+  Average lines: 16.95
+  Median lines:  15.0
+
+Sampling dataset...
+✓ Sampled 450/489 Java Human samples (92.0%)
+✓ Sampled 150/155 Java ChatGPT samples (96.8%)
+✓ Sampled 150/164 Java GPT-4 samples (91.5%)
+✓ Sampled 150/161 Java Gemini Pro samples (93.2%)
+✓ Sampled 300/353 Python Human samples (85.0%)
+✓ Sampled 100/140 Python ChatGPT samples (71.4%)
+✓ Sampled 100/110 Python GPT-4 samples (90.9%)
+✓ Sampled 100/158 Python Gemini Pro samples (63.3%)
+
+Language   Human       ChatGPT    GPT-4      Gemini Pro   Total AI     Total     
+--------------------------------------------------------------------------------
+Java       450         150        150        150          450          900       
+Python     300         100        100        100          300          600       
+--------------------------------------------------------------------------------
+TOTAL      750         250        250        250          750          1,500     
+% of AI                33.3%      33.3%      33.3%                               
+--------------------------------------------------------------------------------
+
+Analyzing line count...
+  Minimum lines: 5
+  Maximum lines: 77
+  Average lines: 17.19
+  Median lines:  15.0
+
+Saving dataset...
+✓ Dataset saved to 'outputs/dataset_processing/humaneval_dataset.csv'
+
+Runtime: 0.20 seconds (0.00 minutes)
