@@ -39,6 +39,8 @@ def get_test_dataset(
         droid_df = helper.load_dataset_from_csv(DatasetPaths.DROID)
         aig_df = helper.load_dataset_from_csv(DatasetPaths.AIG)
         sniffer_df = helper.load_dataset_from_csv(DatasetPaths.SNIFFER)
+        humaneval_df = helper.load_dataset_from_csv(DatasetPaths.HUMANEVAL)
+        mbpp_df = helper.load_dataset_from_csv(DatasetPaths.MBPP)
 
         if is_test_run:
             droid_df = helper.sample_dataset(
@@ -53,11 +55,23 @@ def get_test_dataset(
                 ('Java', 'ChatGPT'): 10,
                 ('Java', 'Human'): 10,
             })
+            humaneval_df = helper.sample_dataset(humaneval_df, {
+                ('Java', 'Human'): 10,
+                ('Java', 'Gemini Pro'): 10,
+            })
+            mbpp_df = helper.sample_dataset(mbpp_df, {
+                ('Python', 'Human'): 10,
+                ('Python', 'Gemini Pro'): 10,
+            })
 
-        df = pd.concat([droid_df, aig_df, sniffer_df], ignore_index=True)
+        df = pd.concat(
+            [droid_df, aig_df, sniffer_df, humaneval_df, mbpp_df],
+            ignore_index=True
+        )
 
         train_df, val_df, _ = helper.split_dataset(droid_df)
-        test_df = pd.concat([aig_df, sniffer_df], ignore_index=True)
+        test_df = pd.concat([aig_df, sniffer_df, humaneval_df, mbpp_df],
+                            ignore_index=True)
         helper.log_dataset_splits_table(df, train_df, val_df, test_df)
 
     else:

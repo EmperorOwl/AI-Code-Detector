@@ -8,6 +8,8 @@ class DatasetPaths:
     DROID = DATASET_DIR + '/droid_dataset.csv'
     AIG = DATASET_DIR + '/aig_dataset.csv'
     SNIFFER = DATASET_DIR + '/sniffer_dataset.csv'
+    HUMANEVAL = DATASET_DIR + '/humaneval_dataset.csv'
+    MBPP = DATASET_DIR + '/mbpp_dataset.csv'
 
 
 CONFIG = {

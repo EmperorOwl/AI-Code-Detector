@@ -375,8 +375,12 @@ class DatasetHelper:
         Args:
             df (pd.DataFrame): Dataset to filter
         """
-        filtered_df = df[(df['Line_Count'] >= 5) & (df['Line_Count'] <= 500)]
+        min_lines = 5
+        max_lines = 500
+        filtered_df = df[(df['Line_Count'] >= min_lines)
+                         & (df['Line_Count'] <= max_lines)]
         self.logger.info(
-            f"✓ Samples after line count filtering: {len(filtered_df):,}"
+            f"✓ Samples after line count filtering ({min_lines}-{max_lines}): "
+            f"{len(filtered_df):,}"
         )
         return filtered_df

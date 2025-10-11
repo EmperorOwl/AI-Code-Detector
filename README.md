@@ -15,6 +15,8 @@ python -m src.dataset_processing.prepare_all
 # Prepare individual datasets
 python -m src.dataset_processing.datasets.aig_dataset
 python -m src.dataset_processing.datasets.droid_dataset
+python -m src.dataset_processing.datasets.humaneval_dataset
+python -m src.dataset_processing.datasets.mbpp_dataset
 python -m src.dataset_processing.datasets.sniffer_dataset
 ```
 
@@ -25,29 +27,6 @@ python -m src.dataset_processing.datasets.sniffer_dataset
 ```
 nvidia-smi
 pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu128
-```
-
-#### Project Structure
-
-```
-src/
-├── dataset_processing/
-│   ├── dataset_helper.py       # Dataset helper utilities
-│   ├── dataset_tokenizer.py    # Tokenize code for model training
-│   └── droid_dataset.py        # Load and prepare DroidCollection dataset
-├── models/
-│   └── transformer/
-│       ├── code_dataset.py     # Dataset class for transformer models
-│       ├── train.py            # Training script for transformer models
-│       └── transformer_model.py # Transformer model implementations
-├── trials/
-│   ├── helper.py               # Trial helper utilities
-│   └── same_dataset.py         # Evaluation on same dataset
-└── utils/
-    ├── analysis.py             # Analysis utilities
-    ├── config.py               # Configuration management
-    ├── logger.py               # Logging utilities
-    └── results.py              # Model evaluation utilities
 ```
 
 #### Models
@@ -77,3 +56,5 @@ src/
 
 - [CodeBERT AST](https://github.com/microsoft/CodeBERT/issues/187)
 - [Hugging Face Understanding Learning Curves](https://huggingface.co/learn/llm-course/en/chapter3/5)
+- [ChatGPT Versions](https://en.wikipedia.org/wiki/ChatGPT#Model_versions)
+- [Gemini Versions](<https://en.wikipedia.org/wiki/Gemini_(language_model)#Model_versions>)
