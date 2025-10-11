@@ -18,6 +18,10 @@ python -m src.dataset_processing.datasets.droid_dataset
 python -m src.dataset_processing.datasets.humaneval_dataset
 python -m src.dataset_processing.datasets.mbpp_dataset
 python -m src.dataset_processing.datasets.sniffer_dataset
+
+# Run experiment
+export ENV=prod
+./run
 ```
 
 ### Enable GPU

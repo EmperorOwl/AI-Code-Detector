@@ -7,32 +7,25 @@ from src.dataset_processing.dataset_tokenizer import DatasetTokenizer
 from src.models.transformer import CodeBertModel, UniXcoderModel
 from src.models.transformer.transformer_model import TransformerModel
 from src.utils.logger import get_logger
-from src.utils.config import TRAINING_DIR, CONFIG, DATASET_DIR
+from src.utils import config
 
 
-def train_model(model_class: type[TransformerModel],
-                sampling_requirements: dict,
-                num_train_epochs: int,
-                batch_size: int) -> None:
+def train_model(model_class: type[TransformerModel]) -> None:
     # Start timer
     start_time = time.time()
 
     # Create logger
     model_name = model_class.MODEL_NAME.lower()
-    log_file_path = f"{TRAINING_DIR}/{model_name}.log"
+    log_file_path = f"{config.TRAINING_DIR}/{model_name}.log"
     logger = get_logger(model_class.MODEL_NAME, log_file_path)
 
     # Log start info
-    logger.info(
-        f"Timestamp: {time.strftime('%d/%m/%Y %I:%M %p',
-                                    time.localtime(start_time))}"
-    )
     logger.info(f"Log: {log_file_path}\n")
 
     # Load and sample datasets
     helper = DatasetHelper(logger)
-    df = helper.load_dataset_from_csv(f'{DATASET_DIR}/droid_dataset.csv')
-    df = helper.sample_dataset(df, sampling_requirements)
+    df = helper.load_dataset_from_csv(f'{config.DROID_PATH}')
+    df = helper.sample_dataset(df, config.SAMPLING_REQUIREMENTS)
 
     # Tokenize dataset
     tokenizer = DatasetTokenizer(logger, model_class)
@@ -47,7 +40,12 @@ def train_model(model_class: type[TransformerModel],
     model = model_class(logger)
 
     # Train model
-    model.train(train_df, val_df, num_train_epochs, batch_size)
+    model.train(
+        train_df,
+        val_df,
+        config.NUM_TRAIN_EPOCHS,
+        config.TRAIN_BATCH_SIZE
+    )
 
     # Save model
     model.save(dir_name=model_name)
@@ -74,13 +72,6 @@ def main():
         help='Model to train (codebert or unixcoder)'
     )
 
-    # Configuration selection argument
-    parser.add_argument(
-        '--test',
-        action='store_true',
-        help='Use test configuration (default: use full configuration)'
-    )
-
     # Parse arguments
     args = parser.parse_args()
 
@@ -91,16 +82,8 @@ def main():
     }
     model_class = model_classes[args.model]
 
-    # Select configuration based on --test flag
-    config = CONFIG['prod'] if not args.test else CONFIG['dev']
-
     # Train the model
-    train_model(
-        model_class=model_class,
-        sampling_requirements=config['SAMPLING_REQUIREMENTS'],
-        num_train_epochs=config['NUM_TRAIN_EPOCHS'],
-        batch_size=config['TRAIN_BATCH_SIZE']
-    )
+    train_model(model_class)
 
 
 if __name__ == "__main__":

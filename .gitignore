@@ -1,17 +1,15 @@
+results/
+outputs_test/
+
+# Python
 __pycache__/
 
 # Virtual environment
 .venv/
 
-# Data, outputs, results, and saved models
-outputs/
-results/
-saved_models/
-
-.idea/
-
 # MacOS
 .DS_Store
 
-# VSCode
-.vscode
+# IDEs
+.vscode/
+.idea/

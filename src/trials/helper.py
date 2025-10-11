@@ -1,7 +1,6 @@
 import time
 import os
 from logging import Logger
-from typing import Literal
 
 import pandas as pd
 
@@ -10,42 +9,35 @@ from src.dataset_processing.dataset_tokenizer import DatasetTokenizer
 from src.models.transformer.transformer_model import TransformerModel
 from src.utils.analysis import save_predictions
 from src.utils.logger import get_logger
-from src.utils.config import (OUTPUT_DIR,
-                              CONFIG,
-                              DatasetPaths)
+from src.utils import config
 
 
 def get_test_dataset(
     logger: Logger,
     model_class: type[TransformerModel],
     trial_name: str,
-    is_test_run: bool = False
 ) -> pd.DataFrame:
 
     helper = DatasetHelper(logger)
     tokenizer = DatasetTokenizer(logger, model_class)
 
     if trial_name == 'same_sources':
-        df = helper.load_dataset_from_csv(DatasetPaths.DROID)
-
-        if is_test_run:
-            df = helper.sample_dataset(df,
-                                       CONFIG['dev']['SAMPLING_REQUIREMENTS'])
-
+        df = helper.load_dataset_from_csv(config.DROID_PATH)
+        df = helper.sample_dataset(df, config.SAMPLING_REQUIREMENTS)
         train_df, val_df, test_df = helper.split_dataset(df)
         helper.log_dataset_splits_table(df, train_df, val_df, test_df)
 
     elif trial_name == 'independent_sources':
-        droid_df = helper.load_dataset_from_csv(DatasetPaths.DROID)
-        aig_df = helper.load_dataset_from_csv(DatasetPaths.AIG)
-        sniffer_df = helper.load_dataset_from_csv(DatasetPaths.SNIFFER)
-        humaneval_df = helper.load_dataset_from_csv(DatasetPaths.HUMANEVAL)
-        mbpp_df = helper.load_dataset_from_csv(DatasetPaths.MBPP)
+        droid_df = helper.load_dataset_from_csv(config.DROID_PATH)
+        aig_df = helper.load_dataset_from_csv(config.AIG_PATH)
+        sniffer_df = helper.load_dataset_from_csv(config.SNIFFER_PATH)
+        humaneval_df = helper.load_dataset_from_csv(config.HUMANEVAL_PATH)
+        mbpp_df = helper.load_dataset_from_csv(config.MBPP_PATH)
 
-        if is_test_run:
+        if config.IS_TEST_RUN:
             droid_df = helper.sample_dataset(
                 droid_df,
-                CONFIG['dev']['SAMPLING_REQUIREMENTS']
+                config.SAMPLING_REQUIREMENTS
             )
             aig_df = helper.sample_dataset(aig_df, {
                 ('Python', 'Gemini Flash'): 10,
@@ -84,15 +76,14 @@ def get_test_dataset(
 
 
 def run_trial(trial_name: str,
-              model_class: type[TransformerModel],
-              mode: Literal['dev', 'prod'] = 'prod') -> None:
+              model_class: type[TransformerModel]) -> None:
     model_name = model_class.MODEL_NAME
 
     # Start timer
     start_time = time.time()
 
     # Create output directory
-    trial_dir = f"{OUTPUT_DIR}/{trial_name}"
+    trial_dir = f"{config.OUTPUT_DIR}/{trial_name}"
     os.makedirs(trial_dir, exist_ok=True)
 
     # Create logger
@@ -100,10 +91,6 @@ def run_trial(trial_name: str,
     logger = get_logger(model_class.MODEL_NAME, log_file_path)
 
     # Log start info
-    logger.info(
-        f"Timestamp: {time.strftime('%d/%m/%Y %I:%M %p',
-                                    time.localtime(start_time))}"
-    )
     logger.info(f"Log: {log_file_path}\n")
 
     # Get test dataset for this trial
@@ -111,16 +98,17 @@ def run_trial(trial_name: str,
         logger,
         model_class,
         trial_name,
-        is_test_run=mode == 'dev'
     )
 
     # Load saved model
-    loaded_model = model_class(logger,
-                               load_from_saved_path=model_name.lower())
+    loaded_model = model_class(
+        logger,
+        load_from_saved_path=model_name.lower()
+    )
 
     output_df = loaded_model.predict(
         test_df=test_df,
-        batch_size=CONFIG[mode]['EVAL_BATCH_SIZE']
+        batch_size=config.EVAL_BATCH_SIZE
     )
 
     # Save predictions

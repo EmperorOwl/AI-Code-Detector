@@ -13,7 +13,7 @@ from transformers import (
 
 from src.models.transformer.code_dataset import CodeDataset
 from src.utils.results import log_results
-from src.utils.config import SAVE_DIR
+from src.utils import config
 
 
 class TransformerModel:
@@ -42,7 +42,7 @@ class TransformerModel:
         )
 
         if load_from_saved_path:
-            path = f"{SAVE_DIR}/{load_from_saved_path}"
+            path = f"{config.TRAINING_DIR}/{load_from_saved_path}"
             self.model = AutoModelForSequenceClassification.from_pretrained(
                 path
             )
@@ -196,7 +196,7 @@ class TransformerModel:
         """ 
         Save the trained model
         """
-        path = f"{SAVE_DIR}/{dir_name}"
+        path = f"{config.TRAINING_DIR}/{dir_name}"
         os.makedirs(path, exist_ok=True)
         self.model.save_pretrained(path)
         self.logger.info(f"{self.MODEL_NAME} model saved to {path}")
