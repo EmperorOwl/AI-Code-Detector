@@ -16,10 +16,11 @@ def get_test_dataset(
     logger: Logger,
     model_class: type[TransformerModel],
     trial_name: str,
+    use_ast: bool
 ) -> pd.DataFrame:
 
     helper = DatasetHelper(logger)
-    tokenizer = DatasetTokenizer(logger, model_class)
+    tokenizer = DatasetTokenizer(logger, model_class, use_ast)
 
     if trial_name == 'same_sources':
         df = helper.load_dataset_from_csv(config.DROID_PATH)
@@ -76,18 +77,21 @@ def get_test_dataset(
 
 
 def run_trial(trial_name: str,
-              model_class: type[TransformerModel]) -> None:
-    model_name = model_class.MODEL_NAME
-
+              model_class: type[TransformerModel],
+              use_ast: bool) -> None:
     # Start timer
     start_time = time.time()
+
+    # Configure
+    model_name = model_class.MODEL_NAME.lower()
+    path_name = model_name + ('-ast' if use_ast else '')
 
     # Create output directory
     trial_dir = f"{config.OUTPUT_DIR}/{trial_name}"
     os.makedirs(trial_dir, exist_ok=True)
 
     # Create logger
-    log_file_path = f"{trial_dir}/{model_name.lower()}.log"
+    log_file_path = f"{trial_dir}/{path_name}.log"
     logger = get_logger(model_class.MODEL_NAME, log_file_path)
 
     # Log start info
@@ -98,12 +102,13 @@ def run_trial(trial_name: str,
         logger,
         model_class,
         trial_name,
+        use_ast
     )
 
     # Load saved model
     loaded_model = model_class(
         logger,
-        load_from_saved_path=model_name.lower()
+        load_from_saved_path=path_name
     )
 
     output_df = loaded_model.predict(
@@ -113,7 +118,7 @@ def run_trial(trial_name: str,
 
     # Save predictions
     predictions_file_path = f"{trial_dir}/predictions.csv"
-    save_predictions(logger, output_df, model_name, predictions_file_path)
+    save_predictions(logger, output_df, path_name, predictions_file_path)
 
     # Log runtime
     end_time = time.time()

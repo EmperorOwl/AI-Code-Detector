@@ -4,12 +4,12 @@ from src.models.transformer import CodeBertModel, UniXcoderModel
 from src.trials.helper import run_trial
 
 
-def eval_codebert(trial_name):
-    run_trial(trial_name, CodeBertModel)
+def eval_codebert(trial_name, use_ast):
+    run_trial(trial_name, CodeBertModel, use_ast)
 
 
-def eval_unixcoder(trial_name):
-    run_trial(trial_name, UniXcoderModel)
+def eval_unixcoder(trial_name, use_ast):
+    run_trial(trial_name, UniXcoderModel, use_ast)
 
 
 def main():
@@ -31,23 +31,28 @@ def main():
     parser.add_argument(
         '--model',
         type=str,
-        choices=['codebert', 'unixcoder', 'all'],
+        choices=['codebert', 'unixcoder'],
         help='Model to evaluate',
-        default='all'
+    )
+
+    # Use AST argument
+    parser.add_argument(
+        '--use-ast',
+        action='store_true',
+        help='Use AST representation for tokenization',
+        default=False
     )
 
     # Parse arguments
     args = parser.parse_args()
     trial_name = args.trial
     model = args.model
+    use_ast = args.use_ast
 
     if model == 'codebert':
-        eval_codebert(trial_name)
+        eval_codebert(trial_name, use_ast)
     elif model == 'unixcoder':
-        eval_unixcoder(trial_name)
-    elif model == 'all':
-        eval_codebert(trial_name)
-        eval_unixcoder(trial_name)
+        eval_unixcoder(trial_name, use_ast)
 
 
 if __name__ == "__main__":

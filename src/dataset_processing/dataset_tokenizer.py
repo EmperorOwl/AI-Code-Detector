@@ -6,13 +6,16 @@ from transformers import AutoTokenizer, PreTrainedTokenizer
 from tqdm import tqdm
 
 from src.models.transformer import TransformerModel
+from src.dataset_processing.ast_processor import AstProcessor
+from src.utils import config
 
 
 class DatasetTokenizer:
 
     def __init__(self,
                  logger: Logger,
-                 model_class: type[TransformerModel]) -> None:
+                 model_class: type[TransformerModel],
+                 use_ast: bool = False) -> None:
         """
         Initialize the DatasetTokenizer.
 
@@ -24,6 +27,8 @@ class DatasetTokenizer:
         self.model_name = model_class.PRETRAINED_MODEL_NAME
         self.max_length = model_class.MAX_LENGTH
         self.tokenizer = self.setup_tokenizer()
+        self.use_ast = use_ast
+        self.ast_processor = AstProcessor(logger) if use_ast else None
 
     def setup_tokenizer(self) -> PreTrainedTokenizer:
         """
@@ -60,19 +65,31 @@ class DatasetTokenizer:
             pd.DataFrame:
                 Dataset with added input_ids and attention_mask columns
         """
-        self.logger.info(f"Tokenizing code samples...")
+        self.logger.info(
+            f"Tokenizing code samples (use_ast: {self.use_ast})..."
+        )
 
         # Initialize lists to store tokenized data
         input_ids_list = []
         attention_mask_list = []
 
         # Tokenize with progress bar
-        for _, code in tqdm(df['Code'].items(),
-                            total=len(df),
-                            desc="Progress"):
-            # Tokenize the code
+        for index, code in tqdm(df['Code'].items(),
+                                total=len(df),
+                                desc="Progress"):
+
+            # Check if we are using the AST representation
+            if self.use_ast:
+                to_encode = self.ast_processor.generate_ast_sequence(
+                    code,
+                    df['Language'].iloc[index].lower()
+                )
+            else:
+                to_encode = code
+
+            # Tokenize the AST sequenece or the code
             encoded = self.tokenizer(
-                code,
+                to_encode,
                 padding='max_length',
                 truncation=True,
                 max_length=self.max_length,
@@ -136,18 +153,20 @@ def main():
     """ Example usage """
     from src.utils.logger import get_logger
     from src.dataset_processing.dataset_helper import DatasetHelper
-    from src.models.transformer import CodeBertModel
+    from src.models.transformer import CodeBertModel, UniXcoderModel
 
     # Initialize logger
-    logger = get_logger("dataset_tokenizer", "outputs/dataset_tokenizer.log")
+    log_file_path = f"{config.OUTPUT_DIR}/dataset_tokenizer.log"
+    logger = get_logger("dataset_tokenizer", log_file_path)
 
     # Load dataset
     helper = DatasetHelper(logger)
-    df = helper.load_dataset_from_csv('dataset.csv')
+    df = helper.load_dataset_from_csv(f'{config.DROID_PATH}')
 
     tokenizer = DatasetTokenizer(
         logger=logger,
-        model_class=CodeBertModel,
+        model_class=UniXcoderModel,
+        use_ast=True
     )
     df = tokenizer.tokenize_code_samples(df)
     tokenizer.analyze_tokenization(df)

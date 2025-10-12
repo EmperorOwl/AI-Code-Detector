@@ -10,13 +10,16 @@ from src.utils.logger import get_logger
 from src.utils import config
 
 
-def train_model(model_class: type[TransformerModel]) -> None:
+def train_model(model_class: type[TransformerModel], use_ast: bool) -> None:
     # Start timer
     start_time = time.time()
 
-    # Create logger
+    # Configure
     model_name = model_class.MODEL_NAME.lower()
-    log_file_path = f"{config.TRAINING_DIR}/{model_name}.log"
+    path_name = model_name + ('-ast' if use_ast else '')
+
+    # Create logger
+    log_file_path = f"{config.TRAINING_DIR}/{path_name}.log"
     logger = get_logger(model_class.MODEL_NAME, log_file_path)
 
     # Log start info
@@ -28,7 +31,7 @@ def train_model(model_class: type[TransformerModel]) -> None:
     df = helper.sample_dataset(df, config.SAMPLING_REQUIREMENTS)
 
     # Tokenize dataset
-    tokenizer = DatasetTokenizer(logger, model_class)
+    tokenizer = DatasetTokenizer(logger, model_class, use_ast)
     df = tokenizer.tokenize_code_samples(df)
     tokenizer.analyze_tokenization(df)
 
@@ -48,7 +51,7 @@ def train_model(model_class: type[TransformerModel]) -> None:
     )
 
     # Save model
-    model.save(dir_name=model_name)
+    model.save(dir_name=path_name)
 
     # Log runtime
     end_time = time.time()
@@ -72,6 +75,14 @@ def main():
         help='Model to train (codebert or unixcoder)'
     )
 
+    # Use AST argument
+    parser.add_argument(
+        '--use-ast',
+        action='store_true',
+        help='Use AST representation for tokenization',
+        default=False
+    )
+
     # Parse arguments
     args = parser.parse_args()
 
@@ -83,7 +94,7 @@ def main():
     model_class = model_classes[args.model]
 
     # Train the model
-    train_model(model_class)
+    train_model(model_class, args.use_ast)
 
 
 if __name__ == "__main__":

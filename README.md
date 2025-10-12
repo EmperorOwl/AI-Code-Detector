@@ -11,6 +11,7 @@
 ```bash
 # Prepare all datasets
 python -m src.dataset_processing.prepare_all
+python -m src.dataset_processing.ast
 
 # Prepare individual datasets
 python -m src.dataset_processing.datasets.aig_dataset
