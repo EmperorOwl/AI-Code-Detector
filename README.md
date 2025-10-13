@@ -55,6 +55,7 @@ pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu12
 
 - [DroidCollection](https://huggingface.co/datasets/project-droid/DroidCollection)
 - [AIGCodeSet](https://huggingface.co/datasets/basakdemirok/AIGCodeSet)
+- [CodeMirage](https://huggingface.co/datasets/HanxiGuo/CodeMirage)
 - [MBPP](https://github.com/google-research/google-research/blob/master/mbpp/README.md)
 
 #### References

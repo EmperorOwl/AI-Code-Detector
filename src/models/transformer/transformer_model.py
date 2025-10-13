@@ -12,6 +12,7 @@ from transformers import (
 )
 
 from src.models.transformer.code_dataset import CodeDataset
+from src.utils.callback import MetricsCallback
 from src.utils.results import log_results
 from src.utils import config
 
@@ -91,8 +92,15 @@ class TransformerModel:
         self.logger.info(
             f"Training {self.MODEL_NAME} model ("
             f"epochs: {num_train_epochs}, "
-            f"batch_size: {batch_size})"
+            f"batch_size: {batch_size})\n"
         )
+
+        # Log header
+        self.logger.info(f"{'Epoch'.ljust(15)}"
+                         f"{'Train Loss'.ljust(15)}"
+                         f"{'Val Loss'.ljust(15)}"
+                         f"{'Learning Rate'.ljust(15)}")
+        self.logger.info("-" * 60)
 
         # Set up training arguments
         train_args = TrainingArguments(
@@ -127,6 +135,9 @@ class TransformerModel:
             eval_dataset=val_dataset,
             callbacks=[EarlyStoppingCallback(early_stopping_patience=3)]
         )
+
+        # Add metrics callback
+        trainer.callback_handler.add_callback(MetricsCallback(self.logger))
 
         # Train the model
         trainer.train()
