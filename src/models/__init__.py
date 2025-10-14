@@ -1,2 +1,2 @@
 from .transformer import CodeBertModel, UniXcoderModel
-from .classifiers import EmbeddingModel
+from .classifiers import EmbeddingModel, XGBoostEmbeddingModel

@@ -1,1 +1,2 @@
 from .embedding_model import EmbeddingModel
+from .xgboost_model import XGBoostEmbeddingModel

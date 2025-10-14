@@ -61,7 +61,7 @@ class EmbeddingModel:
     UniXcoder based model for detecting AI-generated code.
     Uses frozen UniXcoder to extract embeddings, then trains a simple classifier.
     """
-    MODEL_NAME = "Embedding"
+    MODEL_NAME = "Simple Embedding"
     PRETRAINED_MODEL_NAME = "microsoft/unixcoder-base"
     MAX_LENGTH = 1024
 

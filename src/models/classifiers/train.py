@@ -3,24 +3,28 @@ import argparse
 
 from src.dataset_processing.dataset_helper import DatasetHelper
 from src.models.classifiers.embedding_model import EmbeddingModel
+from src.models.classifiers.xgboost_model import XGBoostEmbeddingModel
 from src.utils.logger import get_logger
 from src.utils import config
 
 
-def train_embedding_model() -> None:
+def train_embedding_model(model_class: type[EmbeddingModel | XGBoostEmbeddingModel]) -> None:
     """
-    Train the EmbeddingModel classifier.
+    Train the embedding-based classifier.
     UniXcoder is always frozen - only the classifier is trained.
+
+    Args:
+        classifier_type (str): Type of classifier to use ("simple" or "xgboost")
     """
     # Start timer
     start_time = time.time()
 
-    # Configure
-    model_name = "embedding"
+    # Configure based on classifier type
+    model_name = model_class.MODEL_NAME.lower()
 
     # Create logger
     log_file_path = f"{config.TRAINING_DIR}/{model_name}.log"
-    logger = get_logger("EmbeddingModel", log_file_path)
+    logger = get_logger(model_class.MODEL_NAME, log_file_path)
 
     # Log start info
     logger.info(f"Log: {log_file_path}\n")
@@ -35,7 +39,7 @@ def train_embedding_model() -> None:
     helper.log_dataset_splits_table(df, train_df, val_df)
 
     # Initialize model
-    model = EmbeddingModel(logger)
+    model = model_class(logger)
 
     # Train model
     model.train(
@@ -59,14 +63,30 @@ def main():
     """Main function with argument parsing."""
     # Create argument parser
     parser = argparse.ArgumentParser(
-        description='Train EmbeddingModel classifier for AI code detection'
+        description='Train embedding-based classifier for AI code detection'
     )
 
-    # Parse arguments (no additional arguments needed)
+    # Classifier type argument
+    parser.add_argument(
+        '--classifier',
+        type=str,
+        choices=['simple', 'xgboost'],
+        default='simple',
+        help='Type of classifier to use (simple or xgboost)'
+    )
+
+    # Parse arguments
     args = parser.parse_args()
 
+    # Select model class
+    model_classes = {
+        'simple': EmbeddingModel,
+        'xgboost': XGBoostEmbeddingModel
+    }
+    model_class = model_classes[args.classifier]
+
     # Train the model
-    train_embedding_model()
+    train_embedding_model(model_class)
 
 
 if __name__ == "__main__":
