@@ -3,6 +3,7 @@ import argparse
 from src.models.transformer import CodeBertModel, UniXcoderModel
 from src.models.classifiers import EmbeddingModel
 from src.models.classifiers import XGBoostEmbeddingModel
+from src.models.classifiers import SVMEmbeddingModel
 from src.trials.helper import run_trial
 
 
@@ -20,6 +21,10 @@ def eval_simple(trial_name, use_ast):
 
 def eval_xgboost(trial_name, use_ast):
     run_trial(trial_name, XGBoostEmbeddingModel, use_ast)
+
+
+def eval_svm(trial_name, use_ast):
+    run_trial(trial_name, SVMEmbeddingModel, use_ast)
 
 
 def main():
@@ -41,7 +46,7 @@ def main():
     parser.add_argument(
         '--model',
         type=str,
-        choices=['codebert', 'unixcoder', 'simple', 'xgboost'],
+        choices=['codebert', 'unixcoder', 'simple', 'xgboost', 'svm'],
         help='Model to evaluate',
     )
 
@@ -67,6 +72,8 @@ def main():
         eval_embedding(trial_name, use_ast)
     elif model == 'xgboost':
         eval_xgboost(trial_name, use_ast)
+    elif model == 'svm':
+        eval_svm(trial_name, use_ast)
 
 
 if __name__ == "__main__":

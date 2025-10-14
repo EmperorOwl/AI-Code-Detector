@@ -4,11 +4,12 @@ import argparse
 from src.dataset_processing.dataset_helper import DatasetHelper
 from src.models.classifiers.embedding_model import EmbeddingModel
 from src.models.classifiers.xgboost_model import XGBoostEmbeddingModel
+from src.models.classifiers.svm_model import SVMEmbeddingModel
 from src.utils.logger import get_logger
 from src.utils import config
 
 
-def train_embedding_model(model_class: type[EmbeddingModel | XGBoostEmbeddingModel]) -> None:
+def train_embedding_model(model_class: type[EmbeddingModel | XGBoostEmbeddingModel | SVMEmbeddingModel]) -> None:
     """
     Train the embedding-based classifier.
     UniXcoder is always frozen - only the classifier is trained.
@@ -70,9 +71,9 @@ def main():
     parser.add_argument(
         '--classifier',
         type=str,
-        choices=['simple', 'xgboost'],
+        choices=['simple', 'xgboost', 'svm'],
         default='simple',
-        help='Type of classifier to use (simple or xgboost)'
+        help='Type of classifier to use (simple, xgboost, or svm)'
     )
 
     # Parse arguments
@@ -81,7 +82,8 @@ def main():
     # Select model class
     model_classes = {
         'simple': EmbeddingModel,
-        'xgboost': XGBoostEmbeddingModel
+        'xgboost': XGBoostEmbeddingModel,
+        'svm': SVMEmbeddingModel
     }
     model_class = model_classes[args.classifier]
 
