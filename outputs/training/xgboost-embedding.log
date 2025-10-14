@@ -1,0 +1,59 @@
+Log: outputs/training/xgboost-embedding.log
+
+Loading dataset...
+✓ Loaded 50,000 samples
+
+Dataset columns:
+  - ID
+  - Dataset
+  - Code
+  - Line_Count
+  - Language
+  - Model
+  - Label
+
+Splitting dataset...
+✓ Created train dataset with 40,000 samples (80.0%)
+✓ Created validation dataset with 5,000 samples (10.0%)
+✓ Created test dataset with 5,000 samples (10.0%)
+
+Dataset    | Language | Model        | Total    | Train    | Val      | Test    
+--------------------------------------------------------------------------------
+Droid      | Java     | Human        | 12,500   | 10,000   | 1,250    | -       
+Droid      | Java     | GPT-4o       | 4,000    | 3,200    | 400      | -       
+Droid      | Java     | GPT-4o mini  | 7,000    | 5,600    | 700      | -       
+Droid      | Java     | DeepSeek     | 1,500    | 1,200    | 150      | -       
+Droid      | Python   | Human        | 12,500   | 10,000   | 1,250    | -       
+Droid      | Python   | GPT-4o       | 4,000    | 3,200    | 400      | -       
+Droid      | Python   | GPT-4o mini  | 7,000    | 5,600    | 700      | -       
+Droid      | Python   | DeepSeek     | 1,500    | 1,200    | 150      | -       
+--------------------------------------------------------------------------------
+TOTAL                                | 50,000   | 40,000   | 5,000    | -       
+
+Loading UniXcoder for embedding extraction...
+XGBoost-Embedding initialized with frozen UniXcoder (device: cuda)
+
+Training XGBoost-Embedding classifier
+
+Extracting training embeddings...
+Extracting validation embeddings...
+Training XGBoost classifier...
+
+Top 10 most important embedding dimensions:
+  1. Dimension 112: 0.0386
+  2. Dimension 523: 0.0360
+  3. Dimension 2: 0.0217
+  4. Dimension 429: 0.0156
+  5. Dimension 487: 0.0154
+  6. Dimension 613: 0.0153
+  7. Dimension 57: 0.0100
+  8. Dimension 69: 0.0076
+  9. Dimension 225: 0.0071
+  10. Dimension 620: 0.0066
+
+Validation Accuracy: 0.8886
+
+XGBoost-Embedding classifier saved to outputs/training/xgboost-embedding
+
+Runtime: 535.51 seconds (8.93 minutes)
+
