@@ -1,0 +1,57 @@
+Log: outputs/training/embedding.log
+
+Loading dataset...
+✓ Loaded 50,000 samples
+
+Dataset columns:
+  - ID
+  - Dataset
+  - Code
+  - Line_Count
+  - Language
+  - Model
+  - Label
+
+Splitting dataset...
+✓ Created train dataset with 40,000 samples (80.0%)
+✓ Created validation dataset with 5,000 samples (10.0%)
+✓ Created test dataset with 5,000 samples (10.0%)
+
+Dataset    | Language | Model        | Total    | Train    | Val      | Test    
+--------------------------------------------------------------------------------
+Droid      | Java     | Human        | 12,500   | 10,000   | 1,250    | -       
+Droid      | Java     | GPT-4o       | 4,000    | 3,200    | 400      | -       
+Droid      | Java     | GPT-4o mini  | 7,000    | 5,600    | 700      | -       
+Droid      | Java     | DeepSeek     | 1,500    | 1,200    | 150      | -       
+Droid      | Python   | Human        | 12,500   | 10,000   | 1,250    | -       
+Droid      | Python   | GPT-4o       | 4,000    | 3,200    | 400      | -       
+Droid      | Python   | GPT-4o mini  | 7,000    | 5,600    | 700      | -       
+Droid      | Python   | DeepSeek     | 1,500    | 1,200    | 150      | -       
+--------------------------------------------------------------------------------
+TOTAL                                | 50,000   | 40,000   | 5,000    | -       
+
+Loading UniXcoder for embedding extraction...
+Embedding model initialized with frozen UniXcoder (device: cuda)
+
+Training Embedding classifier (epochs: 10, batch_size: 32)
+
+Extracting training embeddings...
+Extracting validation embeddings...
+
+Epoch     Train Loss     Val Loss       Val Acc        
+-------------------------------------------------------
+        1        0.2958        0.2393        89.82%
+        2        0.2375        0.2191        90.70%
+        3        0.2141        0.2100        91.08%
+        4        0.1934        0.2063        91.22%
+        5        0.1765        0.2061        91.58%
+        6        0.1632        0.2042        91.84%
+        7        0.1475        0.2105        91.78%
+        8        0.1359        0.2069        91.80%
+        9        0.1238        0.2213        91.74%
+Early stopping at epoch 9
+
+Embedding classifier saved to outputs/training/embedding
+
+Runtime: 611.60 seconds (10.19 minutes)
+
