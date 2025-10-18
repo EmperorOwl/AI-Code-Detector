@@ -20,7 +20,7 @@ class SimpleClassifier(nn.Module):
 
     Architecture:
     - UniXcoder embeddings (768) -> hidden layers -> binary classification (2)
-    
+
     Example: 768 -> 256 -> 128 -> 2
     - 768: UniXcoder's embedding dimension (fixed by pre-trained model)
     - 256: First compression layer (3x reduction, preserves most information)

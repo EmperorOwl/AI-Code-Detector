@@ -69,7 +69,7 @@ def main():
     elif model == 'unixcoder':
         eval_unixcoder(trial_name, use_ast)
     elif model == 'simple':
-        eval_embedding(trial_name, use_ast)
+        eval_simple(trial_name, use_ast)
     elif model == 'xgboost':
         eval_xgboost(trial_name, use_ast)
     elif model == 'svm':
